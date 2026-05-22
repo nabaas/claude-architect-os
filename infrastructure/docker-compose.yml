@@ -1,0 +1,501 @@
+# infrastructure/docker-compose.yml
+# Complete Docker Stack — Claude Architect OS v4.0
+# Services: Ollama, Open-WebUI, Supabase, ChromaDB, n8n, Redis, PostgreSQL
+#
+# Usage:
+#   cp .env.example .env && fill in values
+#   docker compose up -d
+#   docker compose ps       # verify all services healthy
+#   docker compose logs -f  # stream all logs
+#
+# Prerequisites: Docker >= 24.0, Docker Compose >= 2.20
+
+services:
+
+  # ==========================================================
+  # OLLAMA — Local LLM inference (hermes3, gemma3:4b)
+  # ==========================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cao-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_PARALLEL=2
+      - OLLAMA_MAX_LOADED_MODELS=2
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - cao-network
+    labels:
+      - "cao.service=ollama"
+      - "cao.description=Local LLM inference engine"
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: cao-ollama-init
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        echo 'Pulling hermes3...' &&
+        ollama pull hermes3 &&
+        echo 'Pulling gemma3:4b...' &&
+        ollama pull gemma3:4b &&
+        echo 'Models ready.'
+      "
+    environment:
+      - OLLAMA_HOST=ollama:11434
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # OPEN-WEBUI — Chat interface for local models
+  # ==========================================================
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: cao-open-webui
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    ports:
+      - "3001:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:?WEBUI_SECRET_KEY required}
+      - WEBUI_JWT_SECRET_KEY=${WEBUI_JWT_SECRET_KEY:?WEBUI_JWT_SECRET_KEY required}
+      - DEFAULT_MODELS=hermes3
+      - ENABLE_SIGNUP=false
+      - ENABLE_LOGIN_FORM=true
+      - DEFAULT_USER_ROLE=user
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - cao-network
+    labels:
+      - "cao.service=open-webui"
+
+  # ==========================================================
+  # POSTGRESQL — Primary database (Supabase base)
+  # ==========================================================
+  postgres:
+    image: supabase/postgres:15.1.1.78
+    container_name: cao-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-claude_architect_os}
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command:
+      - postgres
+      - -c
+      - max_connections=200
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1536MB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+      - -c
+      - log_min_duration_statement=1000
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-claude_architect_os}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cao-network
+    labels:
+      - "cao.service=postgres"
+
+  # ==========================================================
+  # SUPABASE STUDIO — Database management UI
+  # ==========================================================
+  supabase-studio:
+    image: supabase/studio:latest
+    container_name: cao-supabase-studio
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      SUPABASE_URL: http://supabase-kong:8000
+      SUPABASE_REST_URL: http://supabase-rest:3000
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:?SUPABASE_ANON_KEY required}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:?SUPABASE_SERVICE_KEY required}
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # SUPABASE KONG — API gateway
+  # ==========================================================
+  supabase-kong:
+    image: kong:2.8.1
+    container_name: cao-supabase-kong
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    volumes:
+      - ./config/kong.yml:/var/lib/kong/kong.yml:ro
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # SUPABASE AUTH (GoTrue)
+  # ==========================================================
+  supabase-auth:
+    image: supabase/gotrue:v2.143.0
+    container_name: cao-supabase-auth
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${SUPABASE_URL:-http://localhost:8000}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-claude_architect_os}?search_path=auth
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required}
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_SMTP_HOST: ${SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS:-}
+      GOTRUE_SMTP_SENDER_NAME: "Claude Architect OS"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_LOG_LEVEL: INFO
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # SUPABASE REALTIME
+  # ==========================================================
+  supabase-realtime:
+    image: supabase/realtime:v2.28.17
+    container_name: cao-supabase-realtime
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB:-claude_architect_os}
+      DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+      DB_ENC_KEY: ${REALTIME_ENC_KEY:-supabaserealtime}
+      SECRET_KEY_BASE: ${REALTIME_SECRET_KEY:?REALTIME_SECRET_KEY required}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      REPLICATION_MODE: RLS
+      JWT_SECRET: ${JWT_SECRET}
+      MAX_REPLICATION_LAG_MB: 200
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # SUPABASE REST (PostgREST)
+  # ==========================================================
+  supabase-rest:
+    image: postgrest/postgrest:v12.0.2
+    container_name: cao-supabase-rest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-claude_architect_os}
+      PGRST_DB_SCHEMAS: public,storage
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: 3600
+      PGRST_MAX_ROWS: 1000
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # SUPABASE META (pg-meta)
+  # ==========================================================
+  supabase-meta:
+    image: supabase/postgres-meta:v0.80.0
+    container_name: cao-supabase-meta
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: postgres
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: ${POSTGRES_DB:-claude_architect_os}
+      PG_META_DB_USER: ${POSTGRES_USER:-postgres}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # SUPABASE STORAGE
+  # ==========================================================
+  supabase-storage:
+    image: supabase/storage-api:v0.46.4
+    container_name: cao-supabase-storage
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - supabase_storage:/var/lib/storage
+    environment:
+      ANON_KEY: ${SUPABASE_ANON_KEY}
+      SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      POSTGREST_URL: http://supabase-rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-claude_architect_os}
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # CHROMADB — Vector database for semantic memory
+  # ==========================================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: cao-chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+      - ALLOW_RESET=TRUE
+      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_AUTH_TOKEN:-}
+      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=${CHROMA_AUTH_PROVIDER:-}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - cao-network
+    labels:
+      - "cao.service=chromadb"
+      - "cao.description=Vector store for semantic memory search"
+
+  # ==========================================================
+  # N8N — Workflow automation
+  # ==========================================================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: cao-n8n
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/home/node/.n8n/workflows:ro
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY required}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:?N8N_PASSWORD required}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-claude_architect_os}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-postgres}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=n8n
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - QUEUE_BULL_REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - EXECUTIONS_PROCESS=queue
+      - N8N_METRICS=true
+      - N8N_LOG_LEVEL=info
+      - N8N_RUNNERS_MAX_CONCURRENCY=5
+      - GENERIC_TIMEZONE=${TZ:-America/New_York}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - cao-network
+    labels:
+      - "cao.service=n8n"
+      - "cao.description=Workflow automation engine"
+
+  n8n-worker:
+    image: n8nio/n8n:latest
+    container_name: cao-n8n-worker
+    restart: unless-stopped
+    depends_on:
+      - n8n
+      - redis
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-claude_architect_os}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-postgres}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=n8n
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - QUEUE_BULL_REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - EXECUTIONS_PROCESS=queue
+      - GENERIC_TIMEZONE=${TZ:-America/New_York}
+    command: worker
+    networks:
+      - cao-network
+
+  # ==========================================================
+  # REDIS — Queue backend for n8n + caching layer
+  # ==========================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: cao-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --appendonly yes
+      --appendfsync everysec
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cao-network
+    labels:
+      - "cao.service=redis"
+      - "cao.description=Queue and cache backend"
+
+# ==========================================================
+# NETWORKS
+# ==========================================================
+networks:
+  cao-network:
+    name: claude-architect-os
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+
+# ==========================================================
+# VOLUMES
+# ==========================================================
+volumes:
+  ollama_data:
+    name: cao-ollama-data
+    driver: local
+  open_webui_data:
+    name: cao-open-webui-data
+    driver: local
+  postgres_data:
+    name: cao-postgres-data
+    driver: local
+  supabase_storage:
+    name: cao-supabase-storage
+    driver: local
+  chromadb_data:
+    name: cao-chromadb-data
+    driver: local
+  n8n_data:
+    name: cao-n8n-data
+    driver: local
+  redis_data:
+    name: cao-redis-data
+    driver: local

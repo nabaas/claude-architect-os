@@ -1,0 +1,92 @@
+{
+  "name": "claude-architect-os",
+  "title": "Claude Architect OS",
+  "description": "AI Command Center for CMNDCENTER — 37 agents, prompt orchestration, pipeline automation, and GitHub deployment",
+  "icon": "icon.png",
+  "author": "nadirabaas",
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "name": "prompt-orchestrator",
+      "title": "Prompt Orchestrator",
+      "description": "Manage and compose layered AI prompt stacks",
+      "mode": "view"
+    },
+    {
+      "name": "deploy-to-github",
+      "title": "Deploy to GitHub",
+      "description": "Push current project to GitHub (creates repo if needed)",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "githubToken",
+      "title": "GitHub Personal Access Token",
+      "description": "PAT with repo scope for creating/pushing repositories",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "repoName",
+      "title": "Repository Name",
+      "description": "GitHub repository name (default: claude-architect-os)",
+      "type": "textfield",
+      "required": false,
+      "default": "claude-architect-os"
+    },
+    {
+      "name": "repoDescription",
+      "title": "Repository Description",
+      "description": "GitHub repository description",
+      "type": "textfield",
+      "required": false,
+      "default": "Claude Architect OS — AI Command Center Raycast Extension"
+    },
+    {
+      "name": "isPrivate",
+      "title": "Private Repository",
+      "description": "Create repository as private",
+      "type": "checkbox",
+      "required": false,
+      "default": false,
+      "label": "Private"
+    },
+    {
+      "name": "projectPath",
+      "title": "Project Directory",
+      "description": "Path to deploy (default: ~/CMNDCENTER/repos/claude-architect-os)",
+      "type": "textfield",
+      "required": false,
+      "default": "~/CMNDCENTER/repos/claude-architect-os"
+    }
+  ],
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@octokit/rest": "^21.0.2",
+    "@raycast/api": "^1.83.2",
+    "@raycast/utils": "^1.19.1",
+    "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "^20.14.0",
+    "@types/react": "^19.2.15",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish",
+    "typecheck": "tsc --noEmit"
+  }
+}

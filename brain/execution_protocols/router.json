@@ -1,0 +1,319 @@
+{
+  "_meta": {
+    "file": "brain/execution_protocols/router.json",
+    "description": "AI model routing rules for Claude Architect OS",
+    "version": "4.0.0",
+    "updated": "2026-05-22",
+    "schema": "routing/v4"
+  },
+
+  "models": {
+    "claude-sonnet-4-6": {
+      "id": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "context_window": 200000,
+      "cost_per_1k_input": 0.003,
+      "cost_per_1k_output": 0.015,
+      "supports_tools": true,
+      "supports_vision": true,
+      "max_output_tokens": 8192,
+      "latency_p50_ms": 1800,
+      "latency_p99_ms": 6000,
+      "capabilities": [
+        "deep-reasoning",
+        "long-context",
+        "code-generation",
+        "architecture-design",
+        "market-analysis",
+        "complex-planning",
+        "tool-use",
+        "multi-step-workflows"
+      ]
+    },
+    "claude-opus-4-5": {
+      "id": "claude-opus-4-5",
+      "provider": "anthropic",
+      "context_window": 200000,
+      "cost_per_1k_input": 0.015,
+      "cost_per_1k_output": 0.075,
+      "supports_tools": true,
+      "supports_vision": true,
+      "max_output_tokens": 8192,
+      "latency_p50_ms": 3200,
+      "latency_p99_ms": 12000,
+      "capabilities": [
+        "highest-reasoning",
+        "complex-architecture",
+        "nuanced-analysis",
+        "long-context",
+        "research-synthesis"
+      ]
+    },
+    "ollama/hermes3": {
+      "id": "hermes3",
+      "provider": "ollama",
+      "endpoint": "http://localhost:11434/api/generate",
+      "context_window": 8192,
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0,
+      "supports_tools": false,
+      "supports_vision": false,
+      "max_output_tokens": 4096,
+      "latency_p50_ms": 400,
+      "latency_p99_ms": 1200,
+      "capabilities": [
+        "fast-reasoning",
+        "local-automation",
+        "short-context",
+        "structured-output",
+        "classification"
+      ]
+    },
+    "ollama/gemma3:4b": {
+      "id": "gemma3:4b",
+      "provider": "ollama",
+      "endpoint": "http://localhost:11434/api/generate",
+      "context_window": 8192,
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0,
+      "supports_tools": false,
+      "supports_vision": true,
+      "max_output_tokens": 2048,
+      "latency_p50_ms": 250,
+      "latency_p99_ms": 800,
+      "capabilities": [
+        "ultra-fast",
+        "classification",
+        "local-processing",
+        "vision-basic",
+        "summarization"
+      ]
+    }
+  },
+
+  "routing_rules": [
+    {
+      "id": "rule-coding",
+      "task_type": "coding",
+      "description": "Code generation, debugging, refactoring, architecture implementation",
+      "matchers": {
+        "keywords": ["write code", "implement", "debug", "refactor", "function", "class", "script", "API", "schema"],
+        "intent_patterns": ["build.*function", "create.*class", "fix.*bug", "implement.*feature"],
+        "context_signals": ["has_code_block", "has_stack_trace", "mentions_language"]
+      },
+      "primary_model": "claude-sonnet-4-6",
+      "fallback_chain": ["ollama/hermes3"],
+      "fallback_condition": "primary_unavailable OR cost_threshold_exceeded",
+      "cost_threshold_usd": 0.50,
+      "max_retries": 2,
+      "timeout_ms": 60000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 3600,
+        "cache_key_fields": ["task_hash", "context_hash"]
+      },
+      "routing_notes": "Always prefer Claude for code to maximize correctness. Use hermes3 fallback only for simple boilerplate."
+    },
+    {
+      "id": "rule-fast-reasoning",
+      "task_type": "fast-reasoning",
+      "description": "Quick decisions, yes/no classification, routing decisions, simple Q&A",
+      "matchers": {
+        "keywords": ["quick", "fast", "classify", "is this", "should I", "yes or no", "route to"],
+        "intent_patterns": ["classify.*as", "decide.*between", "is.*valid"],
+        "context_signals": ["short_input", "single_question", "binary_decision"]
+      },
+      "primary_model": "ollama/hermes3",
+      "fallback_chain": ["ollama/gemma3:4b", "claude-sonnet-4-6"],
+      "fallback_condition": "ollama_unavailable",
+      "cost_threshold_usd": 0.0,
+      "max_retries": 3,
+      "timeout_ms": 5000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 300,
+        "cache_key_fields": ["input_hash"]
+      },
+      "routing_notes": "Local models first for speed and zero cost. Escalate to Claude only if local model confidence < 0.6."
+    },
+    {
+      "id": "rule-research",
+      "task_type": "research",
+      "description": "Deep research, synthesis, multi-source analysis, report generation",
+      "matchers": {
+        "keywords": ["research", "analyze", "synthesize", "compare", "investigate", "deep dive", "find patterns"],
+        "intent_patterns": ["research.*topic", "analyze.*market", "compare.*options", "synthesize.*findings"],
+        "context_signals": ["multiple_sources", "requires_synthesis", "long_expected_output"]
+      },
+      "primary_model": "claude-sonnet-4-6",
+      "fallback_chain": ["claude-opus-4-5"],
+      "fallback_condition": "complexity_score > 0.9",
+      "cost_threshold_usd": 2.00,
+      "max_retries": 1,
+      "timeout_ms": 120000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 43200,
+        "cache_key_fields": ["query_hash", "date"]
+      },
+      "routing_notes": "Use Opus for research tasks exceeding complexity_score 0.9 where synthesis depth matters more than cost."
+    },
+    {
+      "id": "rule-local-automation",
+      "task_type": "local-automation",
+      "description": "Shell scripts, cron jobs, file operations, local system tasks",
+      "matchers": {
+        "keywords": ["bash", "shell", "automate", "cron", "script", "local", "file", "directory", "symlink"],
+        "intent_patterns": ["run.*script", "automate.*task", "create.*cron", "write.*bash"],
+        "context_signals": ["mentions_filesystem", "mentions_cron", "mentions_launchagent"]
+      },
+      "primary_model": "ollama/hermes3",
+      "fallback_chain": ["claude-sonnet-4-6"],
+      "fallback_condition": "ollama_unavailable OR task_complexity > 0.7",
+      "cost_threshold_usd": 0.0,
+      "max_retries": 2,
+      "timeout_ms": 15000,
+      "caching": {
+        "enabled": false
+      },
+      "routing_notes": "Local automation is kept local by default. Complex multi-step orchestration scripts escalate to Claude."
+    },
+    {
+      "id": "rule-long-context",
+      "task_type": "long-context",
+      "description": "Processing large files, full codebase analysis, full document review",
+      "matchers": {
+        "keywords": ["entire codebase", "full document", "all files", "complete analysis", "entire repo"],
+        "intent_patterns": ["analyze.*entire", "review.*all", "process.*full"],
+        "context_signals": ["input_tokens > 50000", "has_multiple_large_files"]
+      },
+      "primary_model": "claude-sonnet-4-6",
+      "fallback_chain": ["claude-opus-4-5"],
+      "fallback_condition": "input_tokens > 150000",
+      "cost_threshold_usd": 5.00,
+      "max_retries": 1,
+      "timeout_ms": 180000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 7200,
+        "cache_key_fields": ["content_hash", "task_type"]
+      },
+      "routing_notes": "Repomix should compress context before this rule fires. Aim for < 50K tokens via compression before routing."
+    },
+    {
+      "id": "rule-market-scan",
+      "task_type": "market-scan",
+      "description": "Market opportunity analysis, trend identification, competitive intelligence",
+      "matchers": {
+        "keywords": ["market scan", "opportunity", "trending", "arbitrage", "price gap", "demand signal", "competition"],
+        "intent_patterns": ["scan.*market", "find.*opportunity", "identify.*trend", "analyze.*competition"],
+        "context_signals": ["mentions_amazon", "mentions_tiktok", "mentions_ebay", "mentions_pricing"]
+      },
+      "primary_model": "claude-sonnet-4-6",
+      "fallback_chain": ["ollama/hermes3"],
+      "fallback_condition": "structured_scoring_only",
+      "cost_threshold_usd": 1.00,
+      "max_retries": 1,
+      "timeout_ms": 90000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 1800,
+        "cache_key_fields": ["market_segment", "date_hour"]
+      },
+      "output_destination": "~/.amsa/linear-queue/",
+      "routing_notes": "Market scans always output to linear-queue. hermes3 handles structured scoring phase after Claude generates signals."
+    },
+    {
+      "id": "rule-arbitrage",
+      "task_type": "arbitrage",
+      "description": "Price arbitrage identification across platforms, time-sensitive opportunity scoring",
+      "matchers": {
+        "keywords": ["arbitrage", "price difference", "buy low", "flip", "spread", "profit margin", "sourcing"],
+        "intent_patterns": ["find.*arbitrage", "calculate.*spread", "identify.*flip", "source.*for"],
+        "context_signals": ["has_price_data", "mentions_resale", "mentions_platforms"]
+      },
+      "primary_model": "claude-sonnet-4-6",
+      "fallback_chain": ["ollama/hermes3"],
+      "fallback_condition": "simple_calculation_only",
+      "cost_threshold_usd": 0.75,
+      "max_retries": 2,
+      "timeout_ms": 30000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 900,
+        "cache_key_fields": ["item_hash", "timestamp_bucket"]
+      },
+      "output_destination": "~/.amsa/linear-queue/",
+      "routing_notes": "Time-sensitive. Shorter cache TTL. If opportunity score < 0.5, discard silently."
+    },
+    {
+      "id": "rule-trend-detection",
+      "task_type": "trend-detection",
+      "description": "Emerging trend identification, viral content analysis, early signal detection",
+      "matchers": {
+        "keywords": ["trending", "going viral", "early signal", "emerging", "rising", "spike", "momentum"],
+        "intent_patterns": ["detect.*trend", "find.*viral", "identify.*emerging", "catch.*early"],
+        "context_signals": ["has_social_data", "has_search_volume", "has_time_series"]
+      },
+      "primary_model": "claude-sonnet-4-6",
+      "fallback_chain": ["ollama/hermes3"],
+      "fallback_condition": "classification_only",
+      "cost_threshold_usd": 1.50,
+      "max_retries": 1,
+      "timeout_ms": 60000,
+      "caching": {
+        "enabled": true,
+        "ttl_seconds": 3600,
+        "cache_key_fields": ["trend_domain", "date"]
+      },
+      "output_destination": "~/.amsa/memory/trend-cache/",
+      "routing_notes": "Trend data older than 48 hours is stale. Hard-expire cache entries. Cross-validate signals across 3+ data sources."
+    }
+  ],
+
+  "global_config": {
+    "default_model": "claude-sonnet-4-6",
+    "global_cost_ceiling_daily_usd": 50.00,
+    "global_cost_ceiling_monthly_usd": 1000.00,
+    "cost_alert_threshold_pct": 80,
+    "ollama_base_url": "http://localhost:11434",
+    "ollama_health_check_interval_ms": 30000,
+    "anthropic_base_url": "https://api.anthropic.com",
+    "circuit_breaker": {
+      "enabled": true,
+      "failure_threshold": 5,
+      "recovery_timeout_ms": 60000,
+      "half_open_max_calls": 2
+    },
+    "logging": {
+      "log_all_routing_decisions": true,
+      "log_destination": "~/.amsa/memory/routing-log.jsonl",
+      "include_cost_tracking": true,
+      "include_latency_tracking": true
+    },
+    "retry_config": {
+      "base_delay_ms": 1000,
+      "backoff_multiplier": 2.0,
+      "max_delay_ms": 30000,
+      "jitter": true
+    }
+  },
+
+  "complexity_scoring": {
+    "description": "Heuristics for computing task complexity score (0.0-1.0)",
+    "factors": {
+      "input_token_count": { "weight": 0.25, "bins": [[0, 1000, 0.1], [1000, 10000, 0.4], [10000, 50000, 0.7], [50000, 999999, 1.0]] },
+      "task_ambiguity": { "weight": 0.20, "signals": ["unclear", "depends on", "it varies", "could be"] },
+      "required_reasoning_depth": { "weight": 0.30, "signals": ["why", "tradeoffs", "compare", "design", "architecture"] },
+      "output_structure_complexity": { "weight": 0.15, "signals": ["multi-file", "schema", "system", "pipeline"] },
+      "domain_expertise_required": { "weight": 0.10, "signals": ["expert", "advanced", "nuanced", "specialized"] }
+    }
+  },
+
+  "cost_tracking": {
+    "session_log": "~/.amsa/memory/cost-tracking.json",
+    "alert_webhook": null,
+    "hard_stop_on_daily_ceiling": true,
+    "report_schedule": "daily_at_midnight"
+  }
+}

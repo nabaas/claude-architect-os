@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  infrastructure/launchagents/com.claudearchitectos.auto-upgrade.plist
+  macOS LaunchAgent — Claude Architect OS Auto-Upgrade
+
+  Runs the auto-upgrade script daily at 3:00 AM local time.
+  Pulls latest from GitHub, reinstalls dependencies, runs health checks.
+
+  Install:
+    cp com.claudearchitectos.auto-upgrade.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.claudearchitectos.auto-upgrade.plist
+
+  Uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.claudearchitectos.auto-upgrade.plist
+    rm ~/Library/LaunchAgents/com.claudearchitectos.auto-upgrade.plist
+
+  Run manually:
+    launchctl start com.claudearchitectos.auto-upgrade
+
+  View logs:
+    tail -f /tmp/cao-upgrade-stdout.log
+    tail -f /tmp/cao-upgrade-stderr.log
+-->
+<plist version="1.0">
+<dict>
+
+  <!-- Unique label for this LaunchAgent -->
+  <key>Label</key>
+  <string>com.claudearchitectos.auto-upgrade</string>
+
+  <!-- Full path to the upgrade script -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/nadirabaas/CMNDCENTER/repos/claude-architect-os/scripts/upgrade.sh</string>
+  </array>
+
+  <!-- Run daily at 3:00 AM -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <!-- Standard output log -->
+  <key>StandardOutPath</key>
+  <string>/tmp/cao-upgrade-stdout.log</string>
+
+  <!-- Standard error log -->
+  <key>StandardErrorPath</key>
+  <string>/tmp/cao-upgrade-stderr.log</string>
+
+  <!-- Do not restart automatically after completion -->
+  <key>KeepAlive</key>
+  <false/>
+
+  <!-- Run as the current user (loaded in user context) -->
+  <!-- UserName is inherited from the login session — no override needed -->
+
+  <!-- Run in the repository directory -->
+  <key>WorkingDirectory</key>
+  <string>/Users/nadirabaas/CMNDCENTER/repos/claude-architect-os</string>
+
+  <!-- Ensure PATH includes Homebrew and common tool locations -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/nadirabaas/bin</string>
+    <key>HOME</key>
+    <string>/Users/nadirabaas</string>
+    <key>UPGRADE_LOG</key>
+    <string>/Users/nadirabaas/.amsa/memory/upgrade-log.json</string>
+    <key>CMNDCENTER</key>
+    <string>/Users/nadirabaas/CMNDCENTER</string>
+    <key>CAO_REPO</key>
+    <string>/Users/nadirabaas/CMNDCENTER/repos/claude-architect-os</string>
+  </dict>
+
+  <!-- Low I/O priority to avoid impacting system during sleep -->
+  <key>LowPriorityIO</key>
+  <true/>
+
+  <!-- Do not launch on system battery if low power mode -->
+  <key>Nice</key>
+  <integer>10</integer>
+
+  <!-- Abandon old run if still running at next scheduled time -->
+  <key>AbandonProcessGroup</key>
+  <false/>
+
+  <!-- Launch at load time only if previously missed (e.g., system was off at 3 AM) -->
+  <!-- Comment out if you do NOT want catch-up runs -->
+  <!-- <key>RunAtLoad</key> -->
+  <!-- <false/> -->
+
+  <!-- Throttle minimum interval to 8 hours between runs (prevent double-firing) -->
+  <key>ThrottleInterval</key>
+  <integer>28800</integer>
+
+</dict>
+</plist>

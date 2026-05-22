@@ -1,0 +1,1512 @@
+{
+  "_meta": {
+    "file": "agents/registry.json",
+    "description": "Complete 37-agent registry for Claude Architect OS / Loki Mode",
+    "version": "4.0.0",
+    "updated": "2026-05-22",
+    "total_agents": 37,
+    "phases": 7
+  },
+
+  "phases": {
+    "discover": { "id": "discover", "label": "DISCOVER", "order": 1, "execution": "parallel", "description": "Understand requirements, market, and users before any design begins" },
+    "design":   { "id": "design",   "label": "DESIGN",   "order": 2, "execution": "parallel", "description": "Produce architecture, API spec, DB schema, and component contracts" },
+    "build":    { "id": "build",    "label": "BUILD",    "order": 3, "execution": "parallel-by-domain", "description": "Implement code, pipelines, and integrations" },
+    "quality":  { "id": "quality",  "label": "QUALITY",  "order": 4, "execution": "parallel", "gate": true, "description": "All quality agents must pass before DEPLOY phase begins" },
+    "deploy":   { "id": "deploy",   "label": "DEPLOY",   "order": 5, "execution": "sequential", "description": "Deploy to production in order: devops-architect then deployment-engineer" },
+    "monetize": { "id": "monetize", "label": "MONETIZE", "order": 6, "execution": "parallel", "description": "Runs in parallel with DEPLOY — monetization readiness should not block deployment" },
+    "operate":  { "id": "operate",  "label": "OPERATE",  "order": 7, "execution": "ongoing", "description": "Continuous feedback loop — all operate agents run on schedule" }
+  },
+
+  "agents": [
+
+    {
+      "id": "requirements-analyst",
+      "name": "Requirements Analyst",
+      "phase": "discover",
+      "phase_order": 1,
+      "description": "Extracts, clarifies, and formalizes product requirements from natural language. Detects ambiguities, conflicting requirements, and missing acceptance criteria.",
+      "capabilities": [
+        "requirement-extraction",
+        "ambiguity-detection",
+        "acceptance-criteria-writing",
+        "use-case-modeling",
+        "non-functional-requirements",
+        "stakeholder-alignment"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/discover/requirements-analyst.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["raw_requirement"],
+        "properties": {
+          "raw_requirement": { "type": "string", "description": "Natural language product requirement" },
+          "stakeholder_context": { "type": "string", "description": "Who is requesting and why" },
+          "constraints": { "type": "array", "items": { "type": "string" }, "description": "Known hard constraints" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "functional_requirements": { "type": "array", "items": { "type": "string" } },
+          "non_functional_requirements": { "type": "array", "items": { "type": "string" } },
+          "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+          "ambiguities": { "type": "array", "items": { "type": "string" } },
+          "out_of_scope": { "type": "array", "items": { "type": "string" } },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      },
+      "quality_gate": "All functional requirements have at least one acceptance criterion. Zero unresolved ambiguities.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.25
+    },
+
+    {
+      "id": "product-manager",
+      "name": "Product Manager",
+      "phase": "discover",
+      "phase_order": 2,
+      "description": "Translates requirements into product scope, feature prioritization (MoSCoW), success metrics, and a phased roadmap. Balances business value against technical effort.",
+      "capabilities": [
+        "scope-definition",
+        "moscow-prioritization",
+        "roadmap-planning",
+        "success-metrics-definition",
+        "effort-estimation",
+        "mvp-scoping"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/discover/product-manager.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["requirements_artifact"],
+        "properties": {
+          "requirements_artifact": { "type": "object", "description": "Output from requirements-analyst" },
+          "business_goal": { "type": "string" },
+          "timeline_days": { "type": "number" },
+          "budget_usd": { "type": "number" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "mvp_features": { "type": "array", "items": { "type": "string" } },
+          "v2_features": { "type": "array", "items": { "type": "string" } },
+          "success_metrics": { "type": "object" },
+          "roadmap": { "type": "array" },
+          "priority_rationale": { "type": "string" }
+        }
+      },
+      "quality_gate": "MVP scope defined. All features have priority, effort estimate, and success metric.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.25
+    },
+
+    {
+      "id": "market-researcher",
+      "name": "Market Researcher",
+      "phase": "discover",
+      "phase_order": 3,
+      "description": "Analyzes market size, demand signals, competitive landscape, pricing benchmarks, and target audience. Scores opportunity viability using the standard asymmetry formula.",
+      "capabilities": [
+        "market-sizing",
+        "competitive-analysis",
+        "demand-forecasting",
+        "pricing-benchmarks",
+        "target-audience-profiling",
+        "opportunity-scoring"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/discover/market-researcher.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["product_description", "target_market"],
+        "properties": {
+          "product_description": { "type": "string" },
+          "target_market": { "type": "string" },
+          "known_competitors": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "market_size_estimate": { "type": "object" },
+          "demand_score": { "type": "number" },
+          "saturation_score": { "type": "number" },
+          "opportunity_score": { "type": "number" },
+          "top_competitors": { "type": "array" },
+          "pricing_range": { "type": "object" },
+          "recommended_positioning": { "type": "string" }
+        }
+      },
+      "quality_gate": "Opportunity score computed. At least 3 competitors analyzed. Pricing range established.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "ux-researcher",
+      "name": "UX Researcher",
+      "phase": "discover",
+      "phase_order": 4,
+      "description": "Maps user journeys, identifies critical pain points, defines user personas, and establishes UX success criteria. Ensures the product solves real user problems.",
+      "capabilities": [
+        "user-journey-mapping",
+        "pain-point-analysis",
+        "persona-development",
+        "usability-heuristics",
+        "friction-identification",
+        "onboarding-flow-design"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/discover/ux-researcher.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["product_description", "target_users"],
+        "properties": {
+          "product_description": { "type": "string" },
+          "target_users": { "type": "string" },
+          "key_flows": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "user_personas": { "type": "array" },
+          "user_journeys": { "type": "array" },
+          "critical_pain_points": { "type": "array" },
+          "ux_success_criteria": { "type": "array" },
+          "onboarding_flow": { "type": "object" }
+        }
+      },
+      "quality_gate": "At least 2 personas. Critical user journey mapped end-to-end. Top 3 pain points documented.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.25
+    },
+
+    {
+      "id": "deep-research-agent",
+      "name": "Deep Research Agent",
+      "phase": "discover",
+      "phase_order": 5,
+      "description": "Conducts exhaustive multi-source research on any topic. Synthesizes findings with confidence scoring, source attribution, and actionable conclusions.",
+      "capabilities": [
+        "web-research",
+        "multi-source-synthesis",
+        "citation-management",
+        "fact-checking",
+        "confidence-scoring",
+        "structured-report-generation"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/discover/deep-research-agent.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["research_query"],
+        "properties": {
+          "research_query": { "type": "string" },
+          "depth": { "type": "string", "enum": ["surface", "standard", "deep", "exhaustive"] },
+          "output_format": { "type": "string", "enum": ["brief", "report", "structured-json"] },
+          "time_constraint_hours": { "type": "number" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "executive_summary": { "type": "string" },
+          "key_findings": { "type": "array" },
+          "sources": { "type": "array" },
+          "confidence_overall": { "type": "number" },
+          "action_recommendations": { "type": "array" },
+          "knowledge_gaps": { "type": "array" }
+        }
+      },
+      "quality_gate": "Minimum 5 sources. All findings have confidence scores. Action recommendations provided.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "repo-index",
+      "name": "Repo Index Agent",
+      "phase": "discover",
+      "phase_order": 6,
+      "description": "Indexes and compresses repository context using Repomix. Maps codebase structure, extracts key interfaces, and produces a compressed context file for downstream agents.",
+      "capabilities": [
+        "repomix-compression",
+        "codebase-mapping",
+        "dependency-analysis",
+        "interface-extraction",
+        "tech-stack-detection",
+        "context-compression"
+      ],
+      "default_model": "ollama/hermes3",
+      "system_prompt_path": "agents/discover/repo-index.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["repo_path"],
+        "properties": {
+          "repo_path": { "type": "string" },
+          "max_output_tokens": { "type": "number", "default": 30000 },
+          "focus_paths": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "compressed_context": { "type": "string" },
+          "file_tree": { "type": "string" },
+          "tech_stack": { "type": "array" },
+          "key_interfaces": { "type": "array" },
+          "total_tokens": { "type": "number" },
+          "compression_ratio": { "type": "number" }
+        }
+      },
+      "quality_gate": "Compressed context under 30K tokens. Tech stack identified. Key interfaces documented.",
+      "timeout_ms": 30000,
+      "cost_limit_usd": 0.05
+    },
+
+    {
+      "id": "deep-research",
+      "name": "Deep Research (Technical)",
+      "phase": "discover",
+      "phase_order": 7,
+      "description": "Alternative deep research agent specializing in technical domains — academic papers, patent searches, technical documentation, and implementation reference finding.",
+      "capabilities": [
+        "academic-research",
+        "patent-search",
+        "technical-documentation",
+        "implementation-references",
+        "benchmark-finding",
+        "rfc-analysis"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/discover/deep-research.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["technical_query"],
+        "properties": {
+          "technical_query": { "type": "string" },
+          "domain": { "type": "string" },
+          "include_code_examples": { "type": "boolean", "default": true }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "technical_summary": { "type": "string" },
+          "reference_implementations": { "type": "array" },
+          "key_papers": { "type": "array" },
+          "recommended_approach": { "type": "string" },
+          "gotchas": { "type": "array" }
+        }
+      },
+      "quality_gate": "At least one reference implementation found. Recommended approach justified with evidence.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "system-architect",
+      "name": "System Architect",
+      "phase": "design",
+      "phase_order": 1,
+      "description": "Designs high-level system architecture, component boundaries, data flows, and failure modes. Produces the master architecture document that all other design agents reference.",
+      "capabilities": [
+        "system-design",
+        "component-modeling",
+        "scalability-planning",
+        "fault-tolerance-design",
+        "event-driven-architecture",
+        "microservices-design",
+        "adr-writing"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/design/system-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["requirements_artifact", "mvp_scope"],
+        "properties": {
+          "requirements_artifact": { "type": "object" },
+          "mvp_scope": { "type": "object" },
+          "tech_preferences": { "type": "array" },
+          "scale_requirements": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "architecture_diagram": { "type": "string", "description": "Mermaid or ASCII diagram" },
+          "components": { "type": "array" },
+          "data_flows": { "type": "array" },
+          "failure_modes": { "type": "array" },
+          "tech_stack_decisions": { "type": "array" },
+          "adrs": { "type": "array", "description": "Architecture Decision Records" }
+        }
+      },
+      "quality_gate": "All components defined with interfaces. All critical failure modes addressed. ADRs written for each major decision.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "api-architect",
+      "name": "API Architect",
+      "phase": "design",
+      "phase_order": 2,
+      "description": "Designs RESTful and/or GraphQL APIs with OpenAPI 3.0 spec, authentication flows, rate limiting strategy, versioning, and error response standards.",
+      "capabilities": [
+        "restful-api-design",
+        "graphql-schema-design",
+        "openapi-specification",
+        "auth-flow-design",
+        "rate-limiting",
+        "api-versioning",
+        "error-standards"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/design/api-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["architecture_artifact", "functional_requirements"],
+        "properties": {
+          "architecture_artifact": { "type": "object" },
+          "functional_requirements": { "type": "array" },
+          "api_style": { "type": "string", "enum": ["rest", "graphql", "grpc", "mixed"] }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "openapi_spec": { "type": "object" },
+          "auth_flow": { "type": "object" },
+          "rate_limit_config": { "type": "object" },
+          "error_codes": { "type": "array" },
+          "versioning_strategy": { "type": "string" }
+        }
+      },
+      "quality_gate": "Full OpenAPI 3.0 spec. All endpoints have auth requirements. Error codes standardized.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "database-architect",
+      "name": "Database Architect",
+      "phase": "design",
+      "phase_order": 3,
+      "description": "Designs normalized database schemas with proper indexing, foreign key constraints, RLS policies, migration strategy, and query performance considerations.",
+      "capabilities": [
+        "relational-schema-design",
+        "index-optimization",
+        "rls-policy-design",
+        "migration-planning",
+        "query-optimization",
+        "data-modeling",
+        "sharding-strategy"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/design/database-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["architecture_artifact", "data_requirements"],
+        "properties": {
+          "architecture_artifact": { "type": "object" },
+          "data_requirements": { "type": "array" },
+          "scale_expectations": { "type": "object" },
+          "db_engine": { "type": "string", "default": "postgresql" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "sql_schema": { "type": "string" },
+          "er_diagram": { "type": "string" },
+          "indexes": { "type": "array" },
+          "rls_policies": { "type": "array" },
+          "migration_plan": { "type": "array" },
+          "query_patterns": { "type": "array" }
+        }
+      },
+      "quality_gate": "All tables have PKs, appropriate indexes, and RLS policies. Migration plan is reversible.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "frontend-architect",
+      "name": "Frontend Architect",
+      "phase": "design",
+      "phase_order": 4,
+      "description": "Designs component hierarchy, state management approach, routing, performance budget, and accessibility standards for web and mobile frontends.",
+      "capabilities": [
+        "component-hierarchy-design",
+        "state-management",
+        "routing-design",
+        "performance-budgeting",
+        "accessibility-standards",
+        "design-system-integration",
+        "ssr-csr-strategy"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/design/frontend-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["ux_research_artifact", "tech_stack"],
+        "properties": {
+          "ux_research_artifact": { "type": "object" },
+          "tech_stack": { "type": "object" },
+          "target_platforms": { "type": "array" },
+          "performance_targets": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "component_tree": { "type": "object" },
+          "state_management_plan": { "type": "object" },
+          "routing_map": { "type": "array" },
+          "performance_budget": { "type": "object" },
+          "accessibility_checklist": { "type": "array" }
+        }
+      },
+      "quality_gate": "Component tree complete. State management justified. Performance budget defined with LCP/FID/CLS targets.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "backend-architect",
+      "name": "Backend Architect",
+      "phase": "design",
+      "phase_order": 5,
+      "description": "Designs server-side service boundaries, data pipeline architecture, caching strategy, background job processing, and security patterns for all backend services.",
+      "capabilities": [
+        "service-boundary-design",
+        "data-pipeline-architecture",
+        "caching-strategy",
+        "background-job-design",
+        "security-pattern-implementation",
+        "circuit-breaker-design",
+        "observability-architecture"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/design/backend-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["architecture_artifact", "api_spec"],
+        "properties": {
+          "architecture_artifact": { "type": "object" },
+          "api_spec": { "type": "object" },
+          "performance_requirements": { "type": "object" },
+          "security_requirements": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "service_contracts": { "type": "array" },
+          "caching_plan": { "type": "object" },
+          "job_queue_design": { "type": "object" },
+          "security_implementation": { "type": "object" },
+          "observability_plan": { "type": "object" }
+        }
+      },
+      "quality_gate": "All service contracts defined. Caching strategy addresses hot paths. Security patterns applied to all data access.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "python-expert",
+      "name": "Python Expert",
+      "phase": "build",
+      "phase_order": 1,
+      "description": "Implements Python services, FastAPI endpoints, data processing pipelines, and ML integrations. Produces clean, tested, type-annotated Python with proper error handling.",
+      "capabilities": [
+        "python-3.12",
+        "fastapi",
+        "pydantic",
+        "async-python",
+        "data-processing",
+        "ml-integration",
+        "unit-testing",
+        "type-annotations"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/build/python-expert.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["service_contract", "implementation_spec"],
+        "properties": {
+          "service_contract": { "type": "object" },
+          "implementation_spec": { "type": "object" },
+          "test_requirements": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "source_files": { "type": "array" },
+          "test_files": { "type": "array" },
+          "requirements_txt": { "type": "string" },
+          "implementation_notes": { "type": "string" }
+        }
+      },
+      "quality_gate": "All code is type-annotated. Unit test coverage >= 80%. No bare except clauses.",
+      "timeout_ms": 180000,
+      "cost_limit_usd": 2.00
+    },
+
+    {
+      "id": "data-engineer",
+      "name": "Data Engineer",
+      "phase": "build",
+      "phase_order": 2,
+      "description": "Builds ETL pipelines, streaming data processors, analytics queries, and data warehouse schemas. Specializes in batch and real-time data movement.",
+      "capabilities": [
+        "etl-pipeline-design",
+        "streaming-processing",
+        "sql-optimization",
+        "data-modeling",
+        "airflow-dags",
+        "dbt-models",
+        "data-quality-checks"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/build/data-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["data_flow_spec", "source_schemas"],
+        "properties": {
+          "data_flow_spec": { "type": "object" },
+          "source_schemas": { "type": "array" },
+          "volume_expectations": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "pipeline_code": { "type": "string" },
+          "sql_transforms": { "type": "array" },
+          "data_quality_tests": { "type": "array" },
+          "run_instructions": { "type": "string" }
+        }
+      },
+      "quality_gate": "Pipeline is idempotent. Data quality checks cover all critical fields. Run instructions tested.",
+      "timeout_ms": 180000,
+      "cost_limit_usd": 2.00
+    },
+
+    {
+      "id": "ml-engineer",
+      "name": "ML Engineer",
+      "phase": "build",
+      "phase_order": 3,
+      "description": "Implements ML model training, evaluation, and inference pipelines. Integrates embedding models, fine-tuning workflows, and model evaluation harnesses.",
+      "capabilities": [
+        "model-training",
+        "inference-optimization",
+        "embedding-pipelines",
+        "fine-tuning",
+        "model-evaluation",
+        "vector-search",
+        "rag-implementation"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/build/ml-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["ml_requirements"],
+        "properties": {
+          "ml_requirements": { "type": "object" },
+          "training_data_spec": { "type": "object" },
+          "evaluation_criteria": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "training_code": { "type": "string" },
+          "inference_service": { "type": "string" },
+          "evaluation_results": { "type": "object" },
+          "model_card": { "type": "object" }
+        }
+      },
+      "quality_gate": "Evaluation results meet defined criteria. Inference latency p99 within budget. Model card complete.",
+      "timeout_ms": 300000,
+      "cost_limit_usd": 3.00
+    },
+
+    {
+      "id": "integration-specialist",
+      "name": "Integration Specialist",
+      "phase": "build",
+      "phase_order": 4,
+      "description": "Implements external API integrations, webhook handlers, OAuth flows, n8n workflow automation nodes, and third-party service connections.",
+      "capabilities": [
+        "rest-api-integration",
+        "webhook-implementation",
+        "oauth-flows",
+        "n8n-workflow-building",
+        "stripe-integration",
+        "event-driven-integrations",
+        "retry-logic"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/build/integration-specialist.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["integration_requirements"],
+        "properties": {
+          "integration_requirements": { "type": "array" },
+          "available_credentials": { "type": "array" },
+          "error_handling_policy": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "integration_code": { "type": "array" },
+          "n8n_workflows": { "type": "array" },
+          "webhook_handlers": { "type": "array" },
+          "test_suite": { "type": "string" }
+        }
+      },
+      "quality_gate": "All integrations have retry logic. Webhook endpoints validate signatures. OAuth flow handles refresh.",
+      "timeout_ms": 180000,
+      "cost_limit_usd": 2.00
+    },
+
+    {
+      "id": "prompt-engineer",
+      "name": "Prompt Engineer",
+      "phase": "build",
+      "phase_order": 5,
+      "description": "Designs, optimizes, and evaluates prompts for all AI system components. Implements few-shot examples, chain-of-thought patterns, and structured output constraints.",
+      "capabilities": [
+        "system-prompt-design",
+        "few-shot-learning",
+        "chain-of-thought",
+        "output-structure-design",
+        "prompt-evaluation",
+        "token-optimization",
+        "jailbreak-resistance"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/build/prompt-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["ai_component_spec"],
+        "properties": {
+          "ai_component_spec": { "type": "object" },
+          "test_cases": { "type": "array" },
+          "quality_bar": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "system_prompt": { "type": "string" },
+          "few_shot_examples": { "type": "array" },
+          "evaluation_results": { "type": "object" },
+          "token_count": { "type": "number" }
+        }
+      },
+      "quality_gate": "All test cases pass. Token count within model context limits. Output structure validated against schema.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "code-reviewer",
+      "name": "Code Reviewer",
+      "phase": "quality",
+      "phase_order": 1,
+      "description": "Reviews all produced code for correctness, maintainability, naming conventions, code smells, and adherence to the project's coding standards.",
+      "capabilities": [
+        "code-quality-review",
+        "design-pattern-detection",
+        "naming-convention-enforcement",
+        "code-smell-identification",
+        "documentation-review",
+        "pr-review"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/quality/code-reviewer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["code_artifacts"],
+        "properties": {
+          "code_artifacts": { "type": "array" },
+          "coding_standards": { "type": "object" },
+          "review_depth": { "type": "string", "enum": ["surface", "standard", "deep"] }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "issues": { "type": "array" },
+          "suggestions": { "type": "array" },
+          "approved": { "type": "boolean" },
+          "quality_score": { "type": "number" }
+        }
+      },
+      "quality_gate": "Quality score >= 0.75 required to pass. All P0/P1 issues must be resolved before approval.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "security-engineer",
+      "name": "Security Engineer",
+      "phase": "quality",
+      "phase_order": 2,
+      "description": "Audits code and infrastructure for OWASP Top 10 vulnerabilities, authentication flaws, authorization bypasses, secrets exposure, and injection attacks.",
+      "capabilities": [
+        "owasp-top-10-audit",
+        "auth-security-review",
+        "secrets-scanning",
+        "injection-detection",
+        "rls-policy-review",
+        "dependency-vulnerability-scan",
+        "threat-modeling"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/quality/security-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["code_artifacts", "infrastructure_config"],
+        "properties": {
+          "code_artifacts": { "type": "array" },
+          "infrastructure_config": { "type": "object" },
+          "threat_model": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "vulnerabilities": { "type": "array" },
+          "critical_count": { "type": "number" },
+          "high_count": { "type": "number" },
+          "approved": { "type": "boolean" },
+          "remediation_plan": { "type": "array" }
+        }
+      },
+      "quality_gate": "Zero critical vulnerabilities. Zero secrets in code. All auth paths verified. Deploy BLOCKED if critical issues found.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "quality-engineer",
+      "name": "Quality Engineer",
+      "phase": "quality",
+      "phase_order": 3,
+      "description": "Defines and executes quality gates, acceptance testing, and regression suites. Produces pass/fail verdicts for all acceptance criteria.",
+      "capabilities": [
+        "acceptance-testing",
+        "regression-testing",
+        "quality-metrics",
+        "test-planning",
+        "defect-tracking",
+        "quality-reporting"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/quality/quality-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["acceptance_criteria", "test_artifacts"],
+        "properties": {
+          "acceptance_criteria": { "type": "array" },
+          "test_artifacts": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "test_results": { "type": "array" },
+          "pass_count": { "type": "number" },
+          "fail_count": { "type": "number" },
+          "approved": { "type": "boolean" },
+          "quality_report": { "type": "object" }
+        }
+      },
+      "quality_gate": "100% of P0 acceptance criteria pass. >= 90% of P1 criteria pass.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "test-architect",
+      "name": "Test Architect",
+      "phase": "quality",
+      "phase_order": 4,
+      "description": "Designs comprehensive automated test strategies including unit, integration, contract, and e2e tests. Produces runnable test suites.",
+      "capabilities": [
+        "test-strategy-design",
+        "unit-test-generation",
+        "integration-test-design",
+        "e2e-test-design",
+        "contract-testing",
+        "coverage-analysis",
+        "test-automation"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/quality/test-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["code_artifacts", "component_contracts"],
+        "properties": {
+          "code_artifacts": { "type": "array" },
+          "component_contracts": { "type": "array" },
+          "coverage_targets": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "test_strategy": { "type": "object" },
+          "unit_tests": { "type": "array" },
+          "integration_tests": { "type": "array" },
+          "e2e_tests": { "type": "array" },
+          "coverage_report": { "type": "object" }
+        }
+      },
+      "quality_gate": "Unit coverage >= 80%. All public interfaces have contract tests. E2e covers all critical user flows.",
+      "timeout_ms": 180000,
+      "cost_limit_usd": 1.50
+    },
+
+    {
+      "id": "dependency-auditor",
+      "name": "Dependency Auditor",
+      "phase": "quality",
+      "phase_order": 5,
+      "description": "Audits all project dependencies for known CVEs, incompatible licenses, unmaintained packages, and unnecessary bloat.",
+      "capabilities": [
+        "cve-scanning",
+        "license-compliance",
+        "package-bloat-analysis",
+        "dependency-tree-analysis",
+        "update-recommendations",
+        "supply-chain-security"
+      ],
+      "default_model": "ollama/hermes3",
+      "system_prompt_path": "agents/quality/dependency-auditor.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["package_files"],
+        "properties": {
+          "package_files": { "type": "array" },
+          "allowed_licenses": { "type": "array" },
+          "max_severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "vulnerabilities": { "type": "array" },
+          "license_violations": { "type": "array" },
+          "outdated_packages": { "type": "array" },
+          "approved": { "type": "boolean" }
+        }
+      },
+      "quality_gate": "Zero critical CVEs. No license violations. All outdated packages have upgrade path.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.10
+    },
+
+    {
+      "id": "performance-engineer",
+      "name": "Performance Engineer",
+      "phase": "quality",
+      "phase_order": 6,
+      "description": "Profiles system performance, identifies bottlenecks, designs load tests, and validates that performance budgets are met before deployment.",
+      "capabilities": [
+        "performance-profiling",
+        "load-testing",
+        "bottleneck-identification",
+        "query-plan-analysis",
+        "memory-profiling",
+        "benchmarking",
+        "performance-budgeting"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/quality/performance-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["code_artifacts", "performance_budgets"],
+        "properties": {
+          "code_artifacts": { "type": "array" },
+          "performance_budgets": { "type": "object" },
+          "load_expectations": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "bottlenecks": { "type": "array" },
+          "load_test_results": { "type": "object" },
+          "optimizations": { "type": "array" },
+          "approved": { "type": "boolean" }
+        }
+      },
+      "quality_gate": "p99 latency within budget. No memory leaks detected. Database queries have EXPLAIN ANALYZE passing.",
+      "timeout_ms": 180000,
+      "cost_limit_usd": 1.50
+    },
+
+    {
+      "id": "root-cause-analyst",
+      "name": "Root Cause Analyst",
+      "phase": "quality",
+      "phase_order": 7,
+      "description": "Investigates any failures surfaced by other quality agents. Uses 5-whys analysis to find systemic root causes and prevent recurrence.",
+      "capabilities": [
+        "5-whys-analysis",
+        "log-analysis",
+        "trace-analysis",
+        "failure-mode-mapping",
+        "incident-response",
+        "post-mortem-writing",
+        "recurrence-prevention"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/quality/root-cause-analyst.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["failure_report"],
+        "properties": {
+          "failure_report": { "type": "object" },
+          "logs": { "type": "string" },
+          "traces": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "root_cause": { "type": "string" },
+          "contributing_factors": { "type": "array" },
+          "remediation_steps": { "type": "array" },
+          "prevention_measures": { "type": "array" },
+          "post_mortem": { "type": "object" }
+        }
+      },
+      "quality_gate": "Root cause identified and actionable. Remediation steps are concrete and assigned.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.75
+    },
+
+    {
+      "id": "devops-architect",
+      "name": "DevOps Architect",
+      "phase": "deploy",
+      "phase_order": 1,
+      "description": "Designs CI/CD pipelines, Dockerfile configurations, infrastructure-as-code, monitoring stack, and deployment strategies (blue/green, canary).",
+      "capabilities": [
+        "ci-cd-design",
+        "dockerfile-optimization",
+        "github-actions",
+        "infrastructure-as-code",
+        "monitoring-stack-design",
+        "blue-green-deployment",
+        "canary-releases"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/deploy/devops-architect.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["architecture_artifact", "code_artifacts"],
+        "properties": {
+          "architecture_artifact": { "type": "object" },
+          "code_artifacts": { "type": "array" },
+          "target_environment": { "type": "string" },
+          "deployment_strategy": { "type": "string" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "dockerfiles": { "type": "array" },
+          "docker_compose": { "type": "string" },
+          "ci_cd_config": { "type": "string" },
+          "monitoring_config": { "type": "object" },
+          "deployment_manifest": { "type": "object" }
+        }
+      },
+      "quality_gate": "Dockerfile uses multi-stage build. CI/CD has rollback step. Monitoring covers all critical paths.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "deployment-engineer",
+      "name": "Deployment Engineer",
+      "phase": "deploy",
+      "phase_order": 2,
+      "description": "Executes the deployment using the DevOps artifact. Runs smoke tests, validates health endpoints, and confirms production readiness. Has rollback authority.",
+      "capabilities": [
+        "production-deployment",
+        "health-check-validation",
+        "smoke-testing",
+        "rollback-execution",
+        "deployment-verification",
+        "post-deploy-monitoring"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/deploy/deployment-engineer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["deployment_manifest", "health_check_endpoints"],
+        "properties": {
+          "deployment_manifest": { "type": "object" },
+          "health_check_endpoints": { "type": "array" },
+          "rollback_plan": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "deployment_status": { "type": "string", "enum": ["success", "partial", "failed", "rolled-back"] },
+          "health_check_results": { "type": "array" },
+          "smoke_test_results": { "type": "array" },
+          "deployment_url": { "type": "string" },
+          "rollback_executed": { "type": "boolean" }
+        }
+      },
+      "quality_gate": "All health checks passing. Smoke tests pass. Deployment URL accessible.",
+      "timeout_ms": 300000,
+      "cost_limit_usd": 0.50
+    },
+
+    {
+      "id": "monetization-strategist",
+      "name": "Monetization Strategist",
+      "phase": "monetize",
+      "phase_order": 1,
+      "description": "Designs revenue models, pricing tiers, growth loops, and monetization infrastructure. Optimizes for LTV, reduces churn, and identifies upsell paths.",
+      "capabilities": [
+        "revenue-model-design",
+        "pricing-strategy",
+        "growth-loop-design",
+        "churn-reduction",
+        "upsell-path-design",
+        "ltv-optimization",
+        "conversion-optimization"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/monetize/monetization-strategist.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["product_description", "market_research_artifact"],
+        "properties": {
+          "product_description": { "type": "string" },
+          "market_research_artifact": { "type": "object" },
+          "target_mrr": { "type": "number" },
+          "monetization_style": { "type": "string", "enum": ["saas", "one-time", "freemium", "usage-based", "marketplace"] }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "pricing_tiers": { "type": "array" },
+          "revenue_model": { "type": "object" },
+          "growth_loops": { "type": "array" },
+          "mrr_projection": { "type": "object" },
+          "implementation_checklist": { "type": "array" }
+        }
+      },
+      "quality_gate": "Pricing tiers justified by willingness-to-pay data. MRR projection has assumptions documented.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.75
+    },
+
+    {
+      "id": "content-strategist",
+      "name": "Content Strategist",
+      "phase": "monetize",
+      "phase_order": 2,
+      "description": "Plans content marketing strategy for acquisition, activation, and retention. Produces content calendar, SEO keywords, and social media execution plan.",
+      "capabilities": [
+        "content-planning",
+        "seo-strategy",
+        "social-media-strategy",
+        "email-marketing",
+        "funnel-content-design",
+        "content-calendar",
+        "distribution-strategy"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/monetize/content-strategist.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["product_description", "target_audience"],
+        "properties": {
+          "product_description": { "type": "string" },
+          "target_audience": { "type": "object" },
+          "budget_monthly_usd": { "type": "number" },
+          "channels": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "content_calendar": { "type": "array" },
+          "seo_keywords": { "type": "array" },
+          "social_media_plan": { "type": "object" },
+          "email_sequences": { "type": "array" },
+          "30_day_launch_plan": { "type": "object" }
+        }
+      },
+      "quality_gate": "30-day content calendar complete. SEO keywords have search volume data. Email sequence covers onboarding.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.75
+    },
+
+    {
+      "id": "business-panel-experts",
+      "name": "Business Panel Experts",
+      "phase": "monetize",
+      "phase_order": 3,
+      "description": "Multi-perspective business review from CEO (vision/strategy), CFO (unit economics/financial viability), and CMO (go-to-market/brand) viewpoints. Surfaces risks and blind spots.",
+      "capabilities": [
+        "ceo-strategy-review",
+        "cfo-unit-economics",
+        "cmo-gtm-analysis",
+        "risk-identification",
+        "competitive-positioning",
+        "financial-modeling",
+        "go-to-market-planning"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/monetize/business-panel-experts.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["product_summary", "monetization_plan"],
+        "properties": {
+          "product_summary": { "type": "string" },
+          "monetization_plan": { "type": "object" },
+          "financial_projections": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "ceo_verdict": { "type": "object" },
+          "cfo_verdict": { "type": "object" },
+          "cmo_verdict": { "type": "object" },
+          "panel_risks": { "type": "array" },
+          "panel_recommendations": { "type": "array" },
+          "go_no_go": { "type": "boolean" }
+        }
+      },
+      "quality_gate": "All three C-suite perspectives provided. Top risks documented. Go/No-Go decision rendered with rationale.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 1.00
+    },
+
+    {
+      "id": "metrics-analyst",
+      "name": "Metrics Analyst",
+      "phase": "operate",
+      "phase_order": 1,
+      "description": "Monitors key performance indicators, detects anomalies, produces trend analysis, and triggers alerts when metrics deviate from expected ranges.",
+      "capabilities": [
+        "kpi-monitoring",
+        "anomaly-detection",
+        "trend-analysis",
+        "dashboard-design",
+        "alert-configuration",
+        "ab-test-analysis",
+        "cohort-analysis"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/metrics-analyst.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["metrics_data"],
+        "properties": {
+          "metrics_data": { "type": "object" },
+          "baseline_expectations": { "type": "object" },
+          "alert_thresholds": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "kpi_summary": { "type": "object" },
+          "anomalies": { "type": "array" },
+          "trends": { "type": "array" },
+          "recommended_actions": { "type": "array" },
+          "alert_triggers": { "type": "array" }
+        }
+      },
+      "quality_gate": "All tracked KPIs reported. Anomalies have severity classification. Recommended actions are time-bounded.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.50,
+      "schedule": "every_hour"
+    },
+
+    {
+      "id": "pm-agent",
+      "name": "PM Agent",
+      "phase": "operate",
+      "phase_order": 2,
+      "description": "Tracks project velocity, coordinates ongoing work, resolves blockers, updates priorities based on new information, and ensures the build pipeline remains unblocked.",
+      "capabilities": [
+        "velocity-tracking",
+        "blocker-identification",
+        "priority-updates",
+        "sprint-coordination",
+        "stakeholder-communication",
+        "risk-escalation"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/pm-agent.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["current_state"],
+        "properties": {
+          "current_state": { "type": "object" },
+          "blockers": { "type": "array" },
+          "new_requirements": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "updated_priorities": { "type": "array" },
+          "resolved_blockers": { "type": "array" },
+          "new_blockers": { "type": "array" },
+          "velocity_report": { "type": "object" },
+          "next_actions": { "type": "array" }
+        }
+      },
+      "quality_gate": "All blockers have owners and ETAs. Priority list is actionable and sorted.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.25,
+      "schedule": "daily_at_9am"
+    },
+
+    {
+      "id": "self-review",
+      "name": "Self Review Agent",
+      "phase": "operate",
+      "phase_order": 3,
+      "description": "Compares system outputs against original objectives. Identifies gaps, regressions, and drift. Triggers improvement cycles when quality drops below threshold.",
+      "capabilities": [
+        "objective-comparison",
+        "output-evaluation",
+        "quality-scoring",
+        "regression-detection",
+        "improvement-triggering",
+        "drift-detection"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/self-review.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["original_objectives", "current_outputs"],
+        "properties": {
+          "original_objectives": { "type": "array" },
+          "current_outputs": { "type": "array" },
+          "quality_baselines": { "type": "object" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "quality_score": { "type": "number" },
+          "gaps": { "type": "array" },
+          "regressions": { "type": "array" },
+          "improvement_needed": { "type": "boolean" },
+          "recommended_improvements": { "type": "array" }
+        }
+      },
+      "quality_gate": "Comparison is objective and evidence-based. All gaps have root cause analysis.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50,
+      "schedule": "after_each_session"
+    },
+
+    {
+      "id": "technical-writer",
+      "name": "Technical Writer",
+      "phase": "operate",
+      "phase_order": 4,
+      "description": "Produces API reference documentation, runbooks, architecture decision records, deployment guides, and user-facing documentation from code and design artifacts.",
+      "capabilities": [
+        "api-documentation",
+        "runbook-writing",
+        "adr-documentation",
+        "deployment-guides",
+        "changelog-generation",
+        "user-documentation"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/technical-writer.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["artifacts_to_document"],
+        "properties": {
+          "artifacts_to_document": { "type": "array" },
+          "audience": { "type": "string", "enum": ["developer", "operator", "user", "executive"] },
+          "format": { "type": "string", "enum": ["markdown", "openapi", "confluence", "notion"] }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "documentation": { "type": "array" },
+          "runbooks": { "type": "array" },
+          "changelog": { "type": "string" }
+        }
+      },
+      "quality_gate": "All public APIs documented. Runbooks are actionable without prior context. Changelog is accurate.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 0.75
+    },
+
+    {
+      "id": "refactoring-expert",
+      "name": "Refactoring Expert",
+      "phase": "operate",
+      "phase_order": 5,
+      "description": "Identifies code quality issues, tech debt, performance bottlenecks, and architectural drift. Produces safe, incremental refactoring plans with measurable outcomes.",
+      "capabilities": [
+        "tech-debt-identification",
+        "refactoring-planning",
+        "design-pattern-application",
+        "incremental-improvement",
+        "performance-refactoring",
+        "test-coverage-improvement"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/refactoring-expert.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["codebase_snapshot"],
+        "properties": {
+          "codebase_snapshot": { "type": "object" },
+          "business_constraints": { "type": "object" },
+          "priority_areas": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "tech_debt_items": { "type": "array" },
+          "refactoring_plan": { "type": "array" },
+          "estimated_effort": { "type": "object" },
+          "expected_improvements": { "type": "object" }
+        }
+      },
+      "quality_gate": "Refactoring plan has no breaking changes. Each step is independently deployable.",
+      "timeout_ms": 120000,
+      "cost_limit_usd": 0.75,
+      "schedule": "weekly"
+    },
+
+    {
+      "id": "learning-guide",
+      "name": "Learning Guide",
+      "phase": "operate",
+      "phase_order": 6,
+      "description": "Synthesizes learnings from completed sessions and builds into the memory system. Produces Karpathy-style wrapups, updates patterns.json, and generates training examples.",
+      "capabilities": [
+        "pattern-synthesis",
+        "lesson-documentation",
+        "knowledge-synthesis",
+        "training-data-generation",
+        "improvement-vector-creation",
+        "karpathy-wrapup"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/learning-guide.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["session_interactions"],
+        "properties": {
+          "session_interactions": { "type": "array" },
+          "outcomes": { "type": "object" },
+          "prior_patterns": { "type": "array" }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "new_patterns": { "type": "array" },
+          "updated_patterns": { "type": "array" },
+          "karpathy_wrapup": { "type": "object" },
+          "improvement_vectors": { "type": "array" },
+          "training_examples": { "type": "array" }
+        }
+      },
+      "quality_gate": "New patterns have confidence scores. Karpathy wrapup has 3 wins, 3 failures, 3 insights minimum.",
+      "timeout_ms": 90000,
+      "cost_limit_usd": 0.50,
+      "schedule": "end_of_session"
+    },
+
+    {
+      "id": "socratic-mentor",
+      "name": "Socratic Mentor",
+      "phase": "operate",
+      "phase_order": 7,
+      "description": "Facilitates deep thinking through structured Socratic questioning. Challenges assumptions, reveals hidden dependencies, and ensures decisions are fully examined before commitment.",
+      "capabilities": [
+        "socratic-questioning",
+        "assumption-challenging",
+        "requirements-discovery",
+        "design-review-facilitation",
+        "decision-analysis",
+        "critical-thinking-support"
+      ],
+      "default_model": "claude-sonnet-4-6",
+      "system_prompt_path": "agents/operate/socratic-mentor.md",
+      "input_schema": {
+        "type": "object",
+        "required": ["topic_or_decision"],
+        "properties": {
+          "topic_or_decision": { "type": "string" },
+          "initial_position": { "type": "string" },
+          "depth": { "type": "string", "enum": ["surface", "standard", "deep"] }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "questions": { "type": "array" },
+          "challenged_assumptions": { "type": "array" },
+          "identified_gaps": { "type": "array" },
+          "refined_position": { "type": "string" }
+        }
+      },
+      "quality_gate": "At least 5 questions generated. All critical assumptions challenged. Refined position is more rigorous than initial.",
+      "timeout_ms": 60000,
+      "cost_limit_usd": 0.50
+    }
+
+  ],
+
+  "loki_coordinator": {
+    "id": "loki-coordinator",
+    "name": "Loki Coordinator",
+    "phase": "meta",
+    "description": "Master orchestrator for the 37-agent Loki Mode pipeline. Manages phase transitions, enforces quality gates, handles agent failures, and maintains global state.",
+    "capabilities": [
+      "phase-orchestration",
+      "quality-gate-enforcement",
+      "failure-handling",
+      "context-packet-management",
+      "parallel-execution-coordination",
+      "override-authority"
+    ],
+    "default_model": "claude-sonnet-4-6",
+    "system_prompt_path": "agents/meta/loki-coordinator.md",
+    "override_authority": true,
+    "quality_gate_enforcement": "strict"
+  }
+}
