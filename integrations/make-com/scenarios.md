@@ -23,7 +23,8 @@ eBay Price Alert
   → Write to ~/.amsa/linear-queue/
 ```
 
-**Webhook URL:** `http://your-server/webhook/ebay-alert`
+**Webhook URL:** `http://localhost:5678/webhook/make-ebay-alert`
+*(Expose externally: `ngrok http 5678` → use generated HTTPS URL)*
 
 ---
 

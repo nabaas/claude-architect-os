@@ -5,23 +5,99 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.inlineSuggest.enabled": true,
   "editor.suggestSelection": "first",
+  "editor.wordWrap": "on",
+  "editor.minimap.enabled": false,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.semanticHighlighting.enabled": true,
+  "editor.linkedEditing": true,
+
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontFamily": "MesloLGS NF",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.env.osx": {
+    "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+    "LITELLM_BASE": "http://localhost:4000",
+    "OLLAMA_HOST": "http://localhost:11434",
+    "CHROMADB_URL": "http://localhost:8000",
+    "N8N_WEBHOOK_BASE": "http://localhost:5678/webhook",
+    "SUPABASE_URL": "http://localhost:54321"
+  },
+
   "files.autoSave": "onFocusChange",
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.DS_Store": true,
+    "**/dist": false,
+    "**/build": false
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/dist/**": true
+  },
+
   "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.editor.enablePreview": false,
+  "workbench.startupEditor": "none",
 
   "continue.enableTabAutocomplete": true,
   "continue.telemetryEnabled": false,
+  "continue.models": [
+    {
+      "title": "Claude Sonnet 4.6 (Primary)",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "apiKey": "${env:ANTHROPIC_API_KEY}",
+      "contextLength": 200000,
+      "systemMessage": "You are an expert software engineer inside CMNDCENTER. Always use TypeScript strict mode. Route complex tasks to Loki Mode. Extract patterns after solving. Check ~/CMNDCENTER/repos/claude-architect-os/CLAUDE.md for operating protocol."
+    },
+    {
+      "title": "Claude Haiku 4.5 (Fast)",
+      "provider": "anthropic",
+      "model": "claude-haiku-4-5-20251001",
+      "apiKey": "${env:ANTHROPIC_API_KEY}",
+      "contextLength": 200000
+    },
+    {
+      "title": "Hermes3 (Local/Offline)",
+      "provider": "ollama",
+      "model": "hermes3",
+      "apiBase": "http://localhost:11434"
+    },
+    {
+      "title": "Gemma3 4B (Local Fast)",
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "apiBase": "http://localhost:11434"
+    }
+  ],
+  "continue.tabAutocomplete.enabled": true,
+  "continue.tabAutocomplete.model": "hermes3",
 
   "claude-dev.apiProvider": "anthropic",
   "claude-dev.anthropicModel": "claude-sonnet-4-6",
+  "claude-dev.customInstructions": "You are operating inside CMNDCENTER v4.0. Read ~/CMNDCENTER/repos/claude-architect-os/CLAUDE.md at every session. Route builds to Loki Mode. Score every decision with ROI formula. Save patterns to ~/.amsa/memory/patterns.json. Auto-fix gaps. Use LiteLLM at localhost:4000 for all model calls.",
+
+  "cline.apiProvider": "anthropic",
+  "cline.apiModelId": "claude-sonnet-4-6",
+  "cline.customInstructions": "CMNDCENTER operator. Use TypeScript strict. Every fix must be permanent (root cause). Extract reusable patterns. Wire outputs to CMNDCENTER chains.",
+
+  "aider.model": "claude-sonnet-4-6",
+  "aider.additionalArgs": ["--cache-prompts", "--no-auto-commits"],
 
   "gitlens.hovers.currentLine.over": "line",
   "gitlens.codeLens.enabled": true,
+  "gitlens.graph.enabled": true,
+  "gitlens.blame.format": "${author|10} ${agoOrDate|14}",
 
   "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+  "errorLens.gutterIconsEnabled": true,
 
-  "todo-tree.general.tags": ["TODO", "FIXME", "HACK", "NOTE", "LOKI", "AGENT"],
+  "todo-tree.general.tags": ["TODO", "FIXME", "HACK", "NOTE", "LOKI", "AGENT", "CHAIN", "PATTERN", "GAP"],
   "todo-tree.highlights.defaultHighlight": {
     "icon": "alert",
     "type": "tag",
@@ -30,26 +106,77 @@
     "opacity": 50
   },
   "todo-tree.highlights.customHighlight": {
-    "LOKI": { "background": "#7c3aed", "foreground": "#fff", "icon": "zap" },
-    "AGENT": { "background": "#059669", "foreground": "#fff", "icon": "robot" }
+    "LOKI":    { "background": "#7c3aed", "foreground": "#fff", "icon": "zap" },
+    "AGENT":   { "background": "#059669", "foreground": "#fff", "icon": "robot" },
+    "CHAIN":   { "background": "#0369a1", "foreground": "#fff", "icon": "git-merge" },
+    "PATTERN": { "background": "#b45309", "foreground": "#fff", "icon": "star" },
+    "GAP":     { "background": "#c2410c", "foreground": "#fff", "icon": "alert" }
   },
 
   "docker.defaultRegistryPath": "ghcr.io",
+  "docker.containers.sortBy": "CreatedTime",
 
   "python.defaultInterpreterPath": "${env:HOME}/.pyenv/shims/python3",
   "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "python.analysis.typeCheckingMode": "basic",
 
-  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]":      { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
-  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
-  "[markdown]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]":            { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[jsonc]":           { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[markdown]":        { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[python]":          { "editor.defaultFormatter": "ms-python.black-formatter" },
+  "[html]":            { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  "prettier.singleQuote": false,
+  "prettier.trailingComma": "all",
+  "prettier.printWidth": 100,
+  "prettier.semi": true,
+
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.autoImports": true,
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "typescript.inlayHints.variableTypes.enabled": false,
+  "typescript.preferences.importModuleSpecifier": "relative",
 
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.js.map",
-    "*.tsx": "${capture}.css",
-    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc",
+    "*.ts":          "${capture}.js, ${capture}.d.ts, ${capture}.js.map",
+    "*.tsx":         "${capture}.css",
+    "package.json":  "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc, .nvmrc",
     "tsconfig.json": "tsconfig.*.json",
-    ".env.example": ".env, .env.*"
-  }
+    ".env.example":  ".env, .env.*",
+    "CLAUDE.md":     "brain/system.md, brain/claude-design.md",
+    "agents/registry.json": "agents/**/*.ts"
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/build": true
+  },
+
+  "extensions.recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "continue.continue",
+    "ms-vscode.vscode-typescript-next",
+    "eamodio.gitlens",
+    "PKief.material-icon-theme",
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "usernamehw.errorlens",
+    "Gruntfuggly.todo-tree",
+    "ms-azuretools.vscode-docker",
+    "saoudrizwan.claude-dev",
+    "github.copilot"
+  ],
+
+  "cmake.configureOnOpen": false,
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off"
 }
