@@ -1,0 +1,22 @@
+{
+  "cline.apiProvider": "anthropic",
+  "cline.apiModelId": "claude-sonnet-4-6",
+  "cline.anthropicApiKey": "${env:ANTHROPIC_API_KEY}",
+  "cline.maxTokens": 8192,
+  "cline.customInstructions": "You are an autonomous coding agent inside Claude Architect OS. You have access to the full CMNDCENTER stack. When building new features: (1) check agents/registry.json for existing capabilities before creating new ones, (2) always write to src/utils/ for shared utilities, (3) always use claude-sonnet-4-6 as default model, (4) include prompt caching on system prompts, (5) after completing a task, run: bash ~/CMNDCENTER/repos/claude-architect-os/scripts/upgrade.sh --quick to sync memory.",
+  "cline.alwaysAllowReadOnly": true,
+  "cline.alwaysAllowWrite": false,
+  "cline.alwaysAllowExecute": false,
+  "cline.alwaysAllowBrowser": false,
+  "cline.allowedCommands": [
+    "npm",
+    "npx",
+    "node",
+    "ts-node",
+    "git",
+    "gh",
+    "python3",
+    "bash ~/CMNDCENTER/**",
+    "docker compose"
+  ]
+}

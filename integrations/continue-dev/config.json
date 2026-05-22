@@ -1,0 +1,59 @@
+{
+  "models": [
+    {
+      "title": "Claude Sonnet 4.6",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "apiKey": "$ANTHROPIC_API_KEY",
+      "contextLength": 200000,
+      "systemMessage": "You are working inside Claude Architect OS — a recursive AI command center. Stack: 37-agent Loki Mode, AMSA Orchestrator, ChromaDB/Supabase memory, n8n automation. Prefer TypeScript, always use prompt caching, never hardcode API keys."
+    },
+    {
+      "title": "Claude Opus 4.7 (Deep Research)",
+      "provider": "anthropic",
+      "model": "claude-opus-4-7",
+      "apiKey": "$ANTHROPIC_API_KEY",
+      "contextLength": 200000
+    },
+    {
+      "title": "Hermes3 (Fast/Local)",
+      "provider": "ollama",
+      "model": "hermes3",
+      "contextLength": 8192
+    },
+    {
+      "title": "Gemma3:4b (Ultra-Fast Local)",
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "contextLength": 4096
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Hermes3 Autocomplete",
+    "provider": "ollama",
+    "model": "hermes3"
+  },
+  "embeddingsProvider": {
+    "provider": "ollama",
+    "model": "nomic-embed-text"
+  },
+  "contextProviders": [
+    { "name": "codebase", "params": {} },
+    { "name": "docs", "params": {} },
+    { "name": "diff", "params": {} },
+    { "name": "terminal", "params": {} },
+    { "name": "problems", "params": {} },
+    {
+      "name": "folder",
+      "params": { "nRetrieve": 25, "nFinal": 5 }
+    }
+  ],
+  "slashCommands": [
+    { "name": "edit", "description": "Edit highlighted code" },
+    { "name": "comment", "description": "Write comments for code" },
+    { "name": "tests", "description": "Write unit tests" },
+    { "name": "loki", "description": "Trigger Loki Mode build", "run": "bash ~/CMNDCENTER/loki/loki.sh \"{{{ input }}}\"" },
+    { "name": "agent", "description": "Route to specialized agent" }
+  ],
+  "allowAnonymousTelemetry": false
+}

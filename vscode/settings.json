@@ -1,0 +1,55 @@
+{
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.inlineSuggest.enabled": true,
+  "editor.suggestSelection": "first",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontFamily": "MesloLGS NF",
+  "files.autoSave": "onFocusChange",
+  "workbench.colorTheme": "Default Dark+",
+
+  "continue.enableTabAutocomplete": true,
+  "continue.telemetryEnabled": false,
+
+  "claude-dev.apiProvider": "anthropic",
+  "claude-dev.anthropicModel": "claude-sonnet-4-6",
+
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.codeLens.enabled": true,
+
+  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+
+  "todo-tree.general.tags": ["TODO", "FIXME", "HACK", "NOTE", "LOKI", "AGENT"],
+  "todo-tree.highlights.defaultHighlight": {
+    "icon": "alert",
+    "type": "tag",
+    "foreground": "#fff",
+    "background": "#e45454",
+    "opacity": 50
+  },
+  "todo-tree.highlights.customHighlight": {
+    "LOKI": { "background": "#7c3aed", "foreground": "#fff", "icon": "zap" },
+    "AGENT": { "background": "#059669", "foreground": "#fff", "icon": "robot" }
+  },
+
+  "docker.defaultRegistryPath": "ghcr.io",
+
+  "python.defaultInterpreterPath": "${env:HOME}/.pyenv/shims/python3",
+  "python.formatting.provider": "black",
+
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[markdown]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.js.map",
+    "*.tsx": "${capture}.css",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc",
+    "tsconfig.json": "tsconfig.*.json",
+    ".env.example": ".env, .env.*"
+  }
+}

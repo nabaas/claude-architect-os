@@ -1,0 +1,12 @@
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "apiKey": "${ANTHROPIC_API_KEY}",
+  "customInstructions": "Operating inside Claude Architect OS (CMNDCENTER v4.0). 37-agent Loki Mode active. Memory at ~/.amsa/memory/. Always prefer existing agent capabilities in agents/registry.json before creating new logic. Route: coding→claude-sonnet-4-6, fast→ollama/hermes3, deep-research→claude-opus-4-7.",
+  "autoApproveReadOnly": true,
+  "enableCheckpoints": true,
+  "diffStrategy": "unified",
+  "browserViewportSize": "1280x800",
+  "screenshotQuality": 75,
+  "preferredLanguage": "TypeScript"
+}

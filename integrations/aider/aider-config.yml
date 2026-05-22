@@ -1,0 +1,46 @@
+# Aider Configuration — Claude Architect OS
+# Place at ~/.aider.conf.yml or pass as --config
+
+model: anthropic/claude-sonnet-4-6
+weak-model: anthropic/claude-haiku-4-5-20251001
+
+# Git settings
+auto-commits: true
+commit-prompt: |
+  Write a git commit message for these changes in the Claude Architect OS repo.
+  Format: type(scope): description
+  Types: feat|fix|refactor|docs|chore|agent|pipeline
+  Keep under 72 chars. No period at end.
+
+# Context
+map-tokens: 2048
+map-refresh: auto
+cache-prompts: true
+cache-keepalive-pings: 6
+
+# Behavior
+yes-always: false
+stream: true
+pretty: true
+show-diffs: true
+
+# Editor
+edit-format: diff
+auto-lint: true
+lint-cmd: "npm run lint --if-present"
+auto-test: false
+
+# Voice (optional)
+voice-language: en
+
+# System message injection
+system-prompt: |
+  You are an autonomous coding agent inside Claude Architect OS (CMNDCENTER v4.0).
+  Stack: 37-agent Loki Mode, AMSA Orchestrator, ChromaDB memory, n8n automation.
+  Rules:
+  - TypeScript preferred, strict mode
+  - claude-sonnet-4-6 as default model
+  - Include prompt caching on all system prompts
+  - New utilities → src/utils/
+  - New agents → agents/registry.json entry required
+  - Memory writes → ~/.amsa/memory/
