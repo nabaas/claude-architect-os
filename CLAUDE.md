@@ -804,6 +804,105 @@ SessionEnd       → scripts/loki-session-end.sh   (Karpathy wrap-up + pattern s
 
 ---
 
+## COMMAND_CENTER_X INTEGRATION (v1.4.0)
+
+Six net-new systems absorbed from COMMAND_CENTER_X blueprint — no duplicates, all wired into existing domino chain.
+
+### New Stack Components
+```
+hummingbot    localhost:8080/hummingbot   Arbitrage + market-making (beside freqtrade trend-following)
+lean          localhost:5555              Institutional backtesting (QuantConnect multi-asset)
+qlib          localhost:8888              Microsoft quant ML — alpha mining, factor research
+openbb        localhost:8000/openbb       Financial intelligence — macro scan, Bloomberg OSS
+the0          localhost:9000              Trading orchestrator — routes qlib/OpenBB → freqtrade/hummingbot
+fenixai       localhost:9001              Multi-agent trading reasoner — validates signals pre-execution
+```
+
+### New Ollama Models (pulled automatically)
+```
+deepseek-coder   → code-heavy tasks, local execution, zero-cost ops
+llama3           → general reasoning, fast local inference
+mistral          → instruction-following, tool use, structured output
+```
+
+All route through LiteLLM:4000. Add to routing table:
+```yaml
+model_list:
+  - model_name: deepseek-coder
+    litellm_params: { model: "ollama/deepseek-coder", api_base: "http://localhost:11434" }
+  - model_name: llama3
+    litellm_params: { model: "ollama/llama3", api_base: "http://localhost:11434" }
+  - model_name: mistral
+    litellm_params: { model: "ollama/mistral", api_base: "http://localhost:11434" }
+```
+
+### New Potentiation Chains (added to pattern-registry v1.4.0)
+```
+trading_intelligence  openbb → qlib → the0 → freqtrade+hummingbot → intellitradeX   ROI ×3.8
+command_center_x      openbb → qlib → fenixai → the0 → freqtrade → hummingbot        ROI ×4.2
+```
+
+### New Hotkeys (wired to shortcuts.sh)
+```
+fswarm      → AI Swarm: all 40 stacks domino       (CMD+SHIFT+A)
+ftrade      → Full trading chain                   (CMD+SHIFT+T)
+fyt         → YouTube automation pipeline          (CMD+SHIFT+Y)
+fscan       → Opportunity scanner (quick-scan+ROI) (CMD+SHIFT+O)
+fdash       → Intelligence dashboard refresh       (CMD+SHIFT+D)
+fvoice      → AIRI / Open-LLM-VTuber avatar        (CMD+SHIFT+V)
+frevenue    → Revenue streams status               (no hotkey)
+fintel-full → OpenBB→qlib→the0→freqtrade chain     (no hotkey)
+```
+
+### New Revenue Streams (~/CMNDCENTER/revenue/)
+```
+FlipScout         — Product arbitrage scanner
+DealScout         — Deal discovery + ROI scoring
+SteamStream       — Steam/gaming trend monetization
+AffiliateFunnels  — AI-generated affiliate content
+TrendSignals      — Trend prediction → early-mover signals
+IntelliTradeX     — Crypto trading P&L (existing)
+```
+
+### New Agent Swarm Model (worktrees)
+```
+~/CMNDCENTER/worktrees/
+  frontend-agent/   — UI/dashboard components
+  backend-agent/    — API + data pipeline
+  testing-agent/    — QA + integration validation
+  research-agent/   — GitHub trending + HN scan
+  trading-agent/    — Signal processing + execution
+  automation-agent/ — n8n + LaunchAgent management
+```
+
+Each worktree runs isolated git checkout; use `loki` or Claude worktree mode to parallelize builds.
+
+### Auto-Integration Protocol (fires nightly via compound-loop.py)
+```
+1. quick-scan.py fires after every significant action (~30s background)
+2. compound-loop.py runs 2am–6:30am: SEARCH→SCORE→ADOPT→PROTOTYPE→WIRE→MEMORIZE
+3. Any repo ROI ≥ 78 → adopt.sh auto-clones + registers + creates CLAUDE.md
+4. New tools → TRIGGER-DICTIONARY.md updated + n8n webhook added
+5. Pattern confidence += 0.05 per reuse; decays if unused 30d
+6. Morning brief (10am) surfaces overnight gains
+```
+
+### Trading Intelligence Flow (COMMAND_CENTER_X Chain)
+```
+OpenBB (macro scan)
+  └→ qlib (alpha model: factor → signal)
+      └→ FenixAI (LLM reasoning: validate signal)
+          └→ the0 (orchestrate: route to execution engine)
+              ├→ freqtrade (trend-following execution)
+              └→ hummingbot (arbitrage + market-making)
+                  └→ IntelliTradeX (unified P&L tracking)
+                      └→ ROI Brain (score outcome → compound memory)
+```
+
+Kill switch: `touch ~/CMNDCENTER/intellitradeX/.HALT` stops all trading; `touch ~/OMNISTACK/.HALT` stops everything.
+
+---
+
 ## OPERATING PRINCIPLES
 
 1. **Output over process.** Ship something every session. Code, deployment, trade, content.
@@ -816,3 +915,5 @@ SessionEnd       → scripts/loki-session-end.sh   (Karpathy wrap-up + pattern s
 8. **Fail fast, fix permanently.** When something breaks, root-cause-analyst finds the permanent fix.
 9. **Every session improves the next.** Session end is not cleanup — it is the investment in tomorrow.
 10. **The goal is autonomous compounding.** Each chain should eventually run without human input.
+11. **No doubles.** Before adopting a new tool, check pattern-registry.json. If same domain+role exists, potentiate — don't duplicate.
+12. **Every new tool must feed an existing chain.** Isolated tools have ROI = 0. Wire it or skip it.
