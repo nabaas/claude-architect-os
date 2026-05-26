@@ -9,6 +9,10 @@ OMNI="$HOME_DIR/OMNISTACK"
 FUSION="$OMNI/FUSION-MASTER"
 PASS=0; FAIL=0
 
+# Source env early so ANTHROPIC_API_KEY check works in subshells
+source "$CMND/system/.env" 2>/dev/null || true
+source "$OMNI/.env" 2>/dev/null || true
+
 chk() {
   local label="$1" result="$2"
   if [[ "$result" == "1" || "$result" == "true" || "$result" == "OK" ]]; then
@@ -23,15 +27,18 @@ echo "═══ OMNISTACK HEALTH CHECK ═══"
 echo ""
 
 echo "L1 WORKSPACE:"
-for f in \
-  "$OMNI/CLAUDE.md" "$OMNI/core/master-prompt.md" \
-  "$FUSION/MASTER-KEYS-MAP.md" "$FUSION/hub/agent-manager.py" \
-  "$FUSION/hub/potentiate-now.py" "$FUSION/hub/compound-loop.py" \
-  "$FUSION/hub/quick-scan.py" "$CMND/roi-brain/scorer.py" \
-  "$CMND/WAND/wand_scan.py" "$CMND/intellitradeX/main.py" \
-  "$CMND/scripts/prompt-intelligence-engine.py"; do
-  [ -f "$f" ] && chk "$(basename $f)" "1" || chk "$(basename $f)" "MISSING"
-done
+chk_file() { [ -f "$2" ] && chk "$1" "1" || chk "$1" "MISSING: $2"; }
+chk_file "OMNISTACK/CLAUDE.md"      "$OMNI/CLAUDE.md"
+chk_file "core/master-prompt.md"    "$OMNI/core/master-prompt.md"
+chk_file "MASTER-KEYS-MAP.md"       "$FUSION/MASTER-KEYS-MAP.md"
+chk_file "agent-manager.py"         "$FUSION/hub/agent-manager.py"
+chk_file "potentiate-now.py"        "$FUSION/hub/potentiate-now.py"
+chk_file "compound-loop.py"         "$FUSION/hub/compound-loop.py"
+chk_file "quick-scan.py"            "$FUSION/hub/quick-scan.py"
+chk_file "roi-brain/scorer.py"      "$CMND/roi-brain/scorer.py"
+chk_file "WAND/wand_scan.py"        "$CMND/WAND/wand_scan.py"
+chk_file "intellitradeX/main.py"    "$CMND/intellitradeX/main.py"
+chk_file "PIE hook"                 "$CMND/scripts/prompt-intelligence-engine.py"
 
 echo ""
 echo "L2 DEPENDENCIES:"
