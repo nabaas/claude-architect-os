@@ -1,0 +1,42 @@
+{
+  "_meta": {"version": "2.0", "updated": "2026-05-26"},
+  "intent_rules": [
+    {"patterns": ["loki","37 agent","build product","build saas","architect","design system"],
+     "model": "opus", "reason": "complex orchestration requires maximum reasoning"},
+    {"patterns": ["trade","signal","alpha","backtest","portfolio risk"],
+     "model": "opus", "reason": "financial signal analysis requires precision"},
+    {"patterns": ["security","owasp","vulnerability","penetration","exploit"],
+     "model": "opus", "reason": "security audit requires adversarial thinking"},
+    {"patterns": ["ml","train","embedding","rag","fine-tune","inference"],
+     "model": "opus", "reason": "ML architecture requires deep domain expertise"},
+    {"patterns": ["research","investigate","analyze deeply","comprehensive"],
+     "model": "opus", "reason": "research requires broad synthesis"},
+    {"patterns": ["fix","debug","quick","check","show","list","status","what is"],
+     "model": "haiku", "reason": "simple lookup or fast fix"},
+    {"patterns": ["hello","hi","test","ping","thanks","ok"],
+     "model": "haiku", "reason": "conversational / trivial"},
+    {"patterns": ["refactor","improve","optimize","clean up"],
+     "model": "sonnet", "reason": "targeted implementation"},
+    {"patterns": ["deploy","docker","ci","infra","k8s"],
+     "model": "sonnet", "reason": "infrastructure automation"},
+    {"patterns": ["api","endpoint","schema","database","migration"],
+     "model": "sonnet", "reason": "standard engineering implementation"}
+  ],
+  "mode_overrides": {
+    "long_prompt_threshold": 300,
+    "long_prompt_model": "opus",
+    "code_block_model": "opus",
+    "loki_model": "opus"
+  },
+  "complexity_map": {
+    "deep":     "opus",
+    "complex":  "sonnet",
+    "moderate": "sonnet",
+    "simple":   "haiku"
+  },
+  "routing_table": {
+    "localhost:4000": "LiteLLM proxy (preferred — all models)",
+    "anthropic":      "Direct API (fallback when LiteLLM down)",
+    "ollama":         "Local inference (hermes3, mistral, deepseek-coder)"
+  }
+}
