@@ -196,6 +196,8 @@
   "gitlens.statusBar.enabled": true,
   "gitlens.statusBar.format": "${author}, ${agoOrDate}",
   "git.autofetch": true,
+  "extensions.autoUpdate": true,
+  "telemetry.telemetryLevel": "off",
   "git.confirmSync": false,
   "git.enableSmartCommit": true,
   "git.postCommitCommand": "none",

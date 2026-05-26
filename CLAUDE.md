@@ -24,7 +24,130 @@
 18 SESSION END   bash ~/CMNDCENTER/scripts/loki-session-end.sh → Karpathy wrap-up → patterns → gaps → score
 19 SELF-DEV      2:55am self-development.ts → compound patterns → improve agent prompts → new capability specs
 20 REFERENCE     Full stack docs, all 37 agents, all 7 chains, all standards ↓
+21 AUTO-ADOPT    On clone/PR pull: run setup/install.sh → all files self-wire via adopt.sh + wire.sh + pattern-registry
+22 PERF LAYER    editor.inlineSuggest + quickSuggestions + formatOnSave + autoSave + extensions.autoUpdate active
 ```
+
+---
+
+## AUTO-ADOPTION PROTOCOL (runs on every `git pull` or `gh pr checkout`)
+
+When this repo is cloned or a PR is checked out, Claude executes this sequence automatically:
+
+```bash
+# Step 1 — Source env (always first, unlocks all API keys)
+source ~/CMNDCENTER/system/.env 2>/dev/null
+source ~/OMNISTACK/.env 2>/dev/null
+
+# Step 2 — Copy hooks to active scripts directory
+cp hooks/prompt-intelligence-engine.py ~/CMNDCENTER/scripts/
+cp hooks/pattern-pipeline-router.py    ~/CMNDCENTER/scripts/
+
+# Step 3 — Apply VS Code performance layer
+cp config/vscode-settings.json ~/OMNISTACK/.vscode/settings.json
+cp config/vscode-tasks.json    ~/OMNISTACK/.vscode/tasks.json
+cp config/vscode-extensions.json ~/OMNISTACK/.vscode/extensions.json
+
+# Step 4 — Copy agent engine + potentiation matrix
+cp agents/agent-manager.py          ~/OMNISTACK/FUSION-MASTER/hub/
+cp agents/potentiation-matrix.py    ~/OMNISTACK/FUSION-MASTER/hub/
+cp agents/potentiate-now.py         ~/OMNISTACK/FUSION-MASTER/hub/
+
+# Step 5 — Sync intelligence + pipeline scripts
+cp intelligence/research-aggregator.py ~/OMNISTACK/FUSION-MASTER/pipelines/
+cp intelligence/scorer.py               ~/CMNDCENTER/roi-brain/
+cp intelligence/wand_scan.py            ~/CMNDCENTER/WAND/
+cp intelligence/intellitradeX.py        ~/CMNDCENTER/intellitradeX/main.py
+cp pipelines/compound-loop.py          ~/OMNISTACK/FUSION-MASTER/hub/
+cp pipelines/quick-scan.py             ~/OMNISTACK/FUSION-MASTER/hub/
+cp pipelines/fusion-trigger.sh         ~/OMNISTACK/FUSION-MASTER/hub/
+cp pipelines/master-refresh.sh         ~/OMNISTACK/FUSION-MASTER/hub/
+
+# Step 6 — Re-import any new n8n workflows
+for f in n8n-workflows/*.json; do
+  name=$(basename "$f" .json)
+  docker cp "$f" omnistack-n8n-1:/tmp/${name}.json 2>/dev/null
+  docker exec omnistack-n8n-1 n8n import:workflow --input="/tmp/${name}.json" 2>/dev/null
+done
+
+# Step 7 — Run potentiation to wire new patterns into compound memory
+python3 ~/OMNISTACK/FUSION-MASTER/hub/potentiate-now.py
+
+# Step 8 — Refresh wallpaper with updated agent teams
+python3 ~/CMNDCENTER/wallpapers/gen_wall_fusion.py 2>/dev/null
+```
+
+**One command to run all 8 steps:**
+```bash
+bash setup/adopt-pr.sh
+```
+
+---
+
+## CLAUDE CODE COMMANDS (use these in every session)
+
+```
+/clear          → wipe context when hitting 200K limit; restart fresh
+/compact        → compress context to summary; use before large builds
+/cost           → check token spend before expensive multi-agent runs
+/doctor         → diagnose hook failures, MCP disconnects, auth issues
+/memory         → view what Claude has stored in memory this session
+/model          → switch model mid-session (opus for complex, haiku for fast)
+--continue      → resume last session context without re-reading all files
+--dangerously-skip-permissions → use only when setup/install.sh needs full access
+```
+
+**Context strategy:**
+- Sessions ≤50K tokens: run normally
+- Sessions 50K–150K: `/compact` to compress before next major task
+- Sessions >150K: `/clear` then reload with `source ~/OMNISTACK/.env && cat ~/OMNISTACK/core/master-prompt.md`
+
+---
+
+## PERFORMANCE LAYER (active in config/vscode-settings.json)
+
+```json
+"editor.inlineSuggest.enabled": true,
+"editor.quickSuggestions": {"other": true, "comments": false, "strings": true},
+"editor.formatOnSave": true,
+"files.autoSave": "afterDelay",
+"extensions.autoUpdate": true,
+"git.autofetch": true,
+"telemetry.telemetryLevel": "off",
+"terminal.integrated.defaultProfile.osx": "zsh",
+"workbench.startupEditor": "none"
+```
+
+---
+
+## HOOKS SETUP (one-time manual step)
+
+Claude Code → Settings → Hooks:
+
+```
+UserPromptSubmit: python3 ~/CMNDCENTER/scripts/prompt-intelligence-engine.py
+PostToolUse (Edit|Write): python3 ~/CMNDCENTER/scripts/pattern-pipeline-router.py
+```
+
+Or copy the template: `cp setup/claude-settings-template.json ~/.claude/projects/<slug>/settings.json`
+
+---
+
+## MCP SERVERS (wire once, active every session)
+
+```json
+{
+  "mcpServers": {
+    "github":     {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"]},
+    "filesystem": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "~/OMNISTACK", "~/CMNDCENTER"]},
+    "fetch":      {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-fetch"]},
+    "memory":     {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"]},
+    "supabase":   {"command": "npx", "args": ["-y", "@supabase/mcp-server-supabase", "--url", "http://localhost:54321"]}
+  }
+}
+```
+
+Add to `~/.claude/settings.json` → `mcpServers` key.
 
 ---
 
