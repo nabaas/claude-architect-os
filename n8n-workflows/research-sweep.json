@@ -1,0 +1,171 @@
+{
+  "name": "research-sweep",
+  "nodes": [
+    {
+      "id": "w1",
+      "name": "Research Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "path": "research-sweep",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "1",
+      "name": "Schedule 2pm",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        500
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 14 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        350,
+        400
+      ],
+      "parameters": {
+        "mode": "passThrough",
+        "output": "input1"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Run Research Aggregator",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/pipelines/research-aggregator.py --mode research --output /tmp/research-results.json"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Auto Adopt Top Repos",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport json, subprocess\nfrom pathlib import Path\nwith open('/tmp/research-results.json') as f: results = json.load(f)\nfor r in results:\n    if r.get('roi_score', 0) >= 78 and 'github.com' in r.get('url', '') and r.get('type') == 'repo':\n        url = r['url']\n        domain = r.get('domain', 'ai')\n        adopt = Path.home() / 'CMNDCENTER/system/blueprints/adopt.sh'\n        if adopt.exists():\n            res = subprocess.run(['bash', str(adopt), url, '--domain', domain], capture_output=True, timeout=120)\n            print(f\\\"{'OK' if res.returncode==0 else 'FAIL'}: {url}\\\")\n\""
+      }
+    },
+    {
+      "id": "5",
+      "name": "Score + Store",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport json, os, datetime\nfrom supabase import create_client\nsb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])\nwith open('/tmp/research-results.json') as f: results = json.load(f)\nfor r in results:\n    if r.get('roi_score', 0) >= 60:\n        sb.table('intelligence_feed').upsert({'title': r.get('title'), 'source': r.get('source', 'research'), 'category': r.get('type', 'repo'), 'roi_score': r.get('roi_score', 60), 'body': r, 'refreshed_at': datetime.datetime.utcnow().isoformat()}).execute()\nprint(f\\\"Stored {len(results)} items\\\")\n\""
+      }
+    },
+    {
+      "id": "6",
+      "name": "Notify Top Finds",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1350,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --from-file /tmp/research-results.json --threshold 78"
+      }
+    }
+  ],
+  "connections": {
+    "Research Webhook": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule 2pm": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Run Research Aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Research Aggregator": {
+      "main": [
+        [
+          {
+            "node": "Auto Adopt Top Repos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Adopt Top Repos": {
+      "main": [
+        [
+          {
+            "node": "Score + Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score + Store": {
+      "main": [
+        [
+          {
+            "node": "Notify Top Finds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-research-sweep-v1"
+}

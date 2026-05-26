@@ -1,0 +1,131 @@
+{
+  "name": "roi-midday",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 12pm",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 12 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Rescore Open Items",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/CMNDCENTER/roi-brain/scorer.py --rescan-open --output /tmp/roi-midday.json"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Promote High Scorers",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport json, os\nfrom supabase import create_client\nsb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])\nwith open('/tmp/roi-midday.json') as f: items = json.load(f)\nfor item in items:\n    score = item.get('roi_score', 0)\n    status = 'priority' if score >= 80 else 'standard' if score >= 60 else 'archived'\n    sb.table('opportunities').update({'status': status, 'roi_score': score}).eq('id', item['id']).execute()\nprint(f'Updated {len(items)} items')\n\""
+      }
+    },
+    {
+      "id": "4",
+      "name": "Notify Priority Items",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --from-supabase --threshold 80"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Trigger Research If Gap",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/research-sweep",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "trigger",
+              "value": "roi-midday"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 12pm": {
+      "main": [
+        [
+          {
+            "node": "Rescore Open Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rescore Open Items": {
+      "main": [
+        [
+          {
+            "node": "Promote High Scorers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Promote High Scorers": {
+      "main": [
+        [
+          {
+            "node": "Notify Priority Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Priority Items": {
+      "main": [
+        [
+          {
+            "node": "Trigger Research If Gap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-roi-midday-v1"
+}

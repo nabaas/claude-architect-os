@@ -1,0 +1,307 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+  // ════ TIER 0 — AUTO-START (fires on every folder open) ══════════════════
+  {
+    "label": "OMNISTACK — Auto-Start",
+    "type": "shell",
+    "command": "bash '${workspaceFolder}/system/startup.sh' 2>/dev/null || true",
+    "runOptions": { "runOn": "folderOpen" },
+    "presentation": { "reveal": "silent", "panel": "shared", "focus": false },
+    "problemMatcher": []
+  },
+  {
+    "label": "⚡ QUICK SCAN — Post-prompt intelligence search",
+    "type": "shell",
+    "command": "source ~/CMNDCENTER/.env 2>/dev/null; python3 ~/OMNISTACK/FUSION-MASTER/hub/quick-scan.py",
+    "runOptions": { "runOn": "folderOpen" },
+    "presentation": { "reveal": "silent", "panel": "shared", "focus": false },
+    "problemMatcher": []
+  },
+  {
+    "label": "PATTERN WATCH — Auto-scan on open",
+    "type": "shell",
+    "command": "echo '── Pattern Index ──' && grep -rn --include='*.py' --include='*.ts' --include='*.sh' --include='*.yml' -oE '(TODO|FIXME|PLAN|HACK|ROUTE|CHAIN):' ${workspaceFolder} 2>/dev/null | grep -v node_modules | grep -v .git | sed 's|${workspaceFolder}/||' | sort | uniq -c | sort -rn | head -30 && echo '' && echo '── Docker Stack ──' && docker compose -f ${workspaceFolder}/docker-compose.yml ps 2>/dev/null | tail -n +2 | awk '{printf \"%-30s %s\\n\", $1, $NF}' || echo 'stack offline'",
+    "runOptions": { "runOn": "folderOpen" },
+    "presentation": { "reveal": "always", "panel": "shared", "focus": false, "clear": true },
+    "problemMatcher": []
+  },
+
+
+
+    // ════ TIER 1 — DOMINO CHAIN ═════════════════════════════════════════════
+    {
+      "label": "🔥 FUSE — Full Domino Chain",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/FUSION-MASTER/hub/fusion-trigger.sh all",
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "new", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "⚡ FUSE QUICK — 60s Chain",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/FUSION-MASTER/hub/fusion-trigger.sh quick",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": false },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 2 — INTELLIGENCE ══════════════════════════════════════════════
+    {
+      "label": "🔬 FRESEARCH — Research + Adopt",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/FUSION-MASTER/hub/fusion-trigger.sh research",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🌅 FMORNING — Morning Brief + WAND",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/FUSION-MASTER/hub/fusion-trigger.sh morning",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "♻️ FREFRESH — Full Intelligence Refresh",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/FUSION-MASTER/hub/fusion-trigger.sh refresh",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 3 — BUILD ════════════════════════════════════════════════════
+    {
+      "label": "🤖 LOKI — 37-Agent Autonomous Build",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/CMNDCENTER/loki/loki.sh",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🖥 FWALL — Wallpaper Refresh",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && python3 ~/CMNDCENTER/wallpapers/gen_wall_fusion.py",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 4 — AGENTS TRINITY ════════════════════════════════════════════
+    {
+      "label": "🔍 VSCAN — Workspace Scan + n8n Route",
+      "type": "shell",
+      "command": "bash ~/OMNISTACK/overlays/ai-fusion-stack-v1/agents/vscode-agent.sh",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🌐 N8N STATUS — Bridge Health Check",
+      "type": "shell",
+      "command": "bash ~/OMNISTACK/overlays/ai-fusion-stack-v1/agents/n8n-agent-bridge.sh status",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "📡 AGENT ROUTE — Classify + Dispatch",
+      "type": "shell",
+      "command": "bash ~/OMNISTACK/overlays/ai-fusion-stack-v1/agents/vscode-agent.sh --json | node ~/OMNISTACK/overlays/ai-fusion-stack-v1/agents/agent-router.js --pipe",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 5 — STATUS + MONITORING ══════════════════════════════════════
+    {
+      "label": "📊 FSTATUS — Pipeline Status Table",
+      "type": "shell",
+      "command": "bash ~/OMNISTACK/FUSION-MASTER/triggers/cron-schedule.sh status",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🐳 DOCKER UP — Start Full Stack",
+      "type": "shell",
+      "command": "cd ~/OMNISTACK && docker compose up -d && docker compose ps",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🐳 DOCKER DOWN — Stop Stack",
+      "type": "shell",
+      "command": "cd ~/OMNISTACK && docker compose down",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 5b — TODO / PLAN / DIAGNOSTICS ═══════════════════════════════
+    {
+      "label": "📝 TODO SCAN — Find all TODO/FIXME/PLAN/HACK",
+      "type": "shell",
+      "command": "grep -rn --include='*.py' --include='*.ts' --include='*.js' --include='*.sh' --include='*.yaml' --include='*.yml' -E '(TODO|FIXME|PLAN|HACK|XXX|REVIEW):?' ${workspaceFolder} | grep -v node_modules | grep -v .git | sort",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🩺 DIAGNOSTICS — Error + Warning Summary",
+      "type": "shell",
+      "command": "echo '=== Python Syntax ===' && find ${workspaceFolder} -name '*.py' ! -path '*/node_modules/*' ! -path '*/__pycache__/*' -exec python3 -m py_compile {} \\; 2>&1 | head -40 && echo '=== Shell Lint ===' && find ${workspaceFolder}/scripts -name '*.sh' -exec bash -n {} \\; 2>&1 | head -20 && echo '=== YAML Validate ===' && find ${workspaceFolder} -name '*.yml' -o -name '*.yaml' | grep -v node_modules | head -10 | xargs -I{} python3 -c \"import yaml,sys; yaml.safe_load(open('{}'))\" 2>&1",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🐳 DOCKER HEALTH — Container Status + Logs",
+      "type": "shell",
+      "command": "echo '=== Stack Status ===' && docker compose -f ${workspaceFolder}/docker-compose.yml ps 2>/dev/null; echo '=== Recent Errors ===' && docker compose -f ${workspaceFolder}/docker-compose.yml logs --tail=20 2>/dev/null | grep -iE '(error|fatal|exception|failed)' | head -20",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "📋 PLAN — Show open GitHub issues",
+      "type": "shell",
+      "command": "gh issue list --limit 20 2>/dev/null || echo 'gh CLI not authenticated — run: gh auth login'",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 5c — ALL-STACK ORCHESTRATION (extensions + refresh + compound) ═
+    {
+      "label": "♾ MASTER REFRESH — All 40 Stacks + Wallpaper + Notify",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/FUSION-MASTER/hub/master-refresh.sh --notify",
+      "group": { "kind": "build", "isDefault": false },
+      "presentation": { "reveal": "always", "panel": "new", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🧠 COMPOUND LOOP — Run Now (search + adopt + prototype + wire)",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && python3 ~/OMNISTACK/FUSION-MASTER/hub/compound-loop.py",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "new", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "📊 INTELLIGENCE DASHBOARD — Patterns + Repos + Services",
+      "type": "shell",
+      "command": "echo '═══ INTELLIGENCE STATE ═══' && echo \"Patterns: $(python3 -c \"import json,pathlib; m=json.loads(pathlib.Path(\\\"$HOME/CMNDCENTER/system/intelligence/compound-memory.json\\\").read_text()); print(len(m.get('global_learnings',[])))\" 2>/dev/null || echo 0)\" && echo \"Repos: $(python3 -c \"import json,pathlib; r=json.loads(pathlib.Path(\\\"$HOME/CMNDCENTER/system/blueprints/pattern-registry.json\\\").read_text()); print(len(r.get('repos',{})))\" 2>/dev/null || echo 0)\" && echo \"Prototypes: $(ls ~/OMNISTACK/FUSION-MASTER/hub/prototypes/*.py 2>/dev/null | wc -l | tr -d ' ')\" && echo '' && echo '═══ SERVICE HEALTH ═══' && for svc in 'LiteLLM:4000/health' 'n8n:5678/healthz' 'ChromaDB:8000/api/v1/heartbeat' 'Supabase:54321/health' 'Ollama:11434/api/tags'; do name=${svc%%:*}; url=${svc#*:}; curl -sf --max-time 2 \"http://localhost:$url\" >/dev/null 2>&1 && echo \"  ✓ $name\" || echo \"  ✗ $name (DOWN)\"; done",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔗 EXTENSION ORCHESTRATE — GitLens + Docker + Error Lens scan",
+      "type": "shell",
+      "command": "echo '═══ GitLens: Recent commits ═══' && git -C ${workspaceFolder} log --oneline --all --since='24 hours ago' 2>/dev/null | head -10 || echo 'No git repo'; echo '' && echo '═══ Docker: All containers ═══' && docker compose -f ~/OMNISTACK/docker-compose.yml ps 2>/dev/null || docker ps --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}' 2>/dev/null | head -15; echo '' && echo '═══ Pattern markers in workspace ═══' && grep -rn --include='*.py' --include='*.ts' --include='*.sh' -cE 'TODO|PLAN|ROUTE|CHAIN|FIXME' ${workspaceFolder} 2>/dev/null | grep -v ':0$' | sort -t: -k2 -rn | head -10",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "📡 WAND + WALLPAPER — Refresh signal scan + desktop map",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && python3 ~/CMNDCENTER/wallpapers/gen_wall_fusion.py 2>/dev/null && osascript -e 'tell application \"Finder\" to set desktop picture to POSIX file \"/Users/nadirabaas/CMNDCENTER/wallpapers/fusion_today.png\"' 2>/dev/null && echo 'Wallpaper refreshed' || echo 'gen_wall_fusion.py unavailable — skipped'",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🌐 TRIGGER DICTIONARY — View all trigger→chain mappings",
+      "type": "shell",
+      "command": "grep -E '^\\|' ~/OMNISTACK/FUSION-MASTER/TRIGGER-DICTIONARY.md | grep -v '^| Trigger' | grep -v '^|---' | head -60",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+
+    {
+      "label": "🗺 MASTER KEYS MAP — All keys, pipelines, repos, mini-projects",
+      "type": "shell",
+      "command": "cat ~/OMNISTACK/FUSION-MASTER/MASTER-KEYS-MAP.md",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 POTENTIATE NOW — Run full Pythagorean potentiation (all scanners)",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/system/.env 2>/dev/null; source ~/OMNISTACK/.env 2>/dev/null; python3 ~/OMNISTACK/FUSION-MASTER/hub/potentiate-now.py",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "new", "clear": true },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 5d — AGENT MANAGER ════════════════════════════════════════════
+    {
+      "label": "🤖 AGENT ASSIGN — Auto-assign agents to current task",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/system/.env 2>/dev/null; source ~/OMNISTACK/.env 2>/dev/null; python3 ~/OMNISTACK/FUSION-MASTER/hub/agent-manager.py \"${input:taskDescription}\"",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🤖 AGENT REPORT — Compound-learned confidence scores",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/system/.env 2>/dev/null; source ~/OMNISTACK/.env 2>/dev/null; python3 ~/OMNISTACK/FUSION-MASTER/hub/agent-manager.py --report",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔄 AGENT REFRESH — Rebuild mini-project agent teams",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/system/.env 2>/dev/null; source ~/OMNISTACK/.env 2>/dev/null; python3 ~/OMNISTACK/FUSION-MASTER/hub/potentiate-now.py && python3 ~/CMNDCENTER/wallpapers/gen_wall_fusion.py",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+
+    // ════ TIER 6 — INSTALL + ACTIVATE ═══════════════════════════════════════
+    {
+      "label": "⚡ INSTALL — LaunchAgents + Shortcuts + n8n",
+      "type": "shell",
+      "command": "bash ~/OMNISTACK/FUSION-MASTER/triggers/cron-schedule.sh install && bash ~/OMNISTACK/FUSION-MASTER/triggers/cron-schedule.sh install-n8n && source ~/.zshrc",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "📥 IMPORT n8n — All Workflows",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && bash ~/OMNISTACK/overlays/ai-fusion-stack-v1/agents/n8n-agent-bridge.sh import all",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "🧠 AUTO-UPDATER — Run Now",
+      "type": "shell",
+      "command": "source ~/CMNDCENTER/.env && python3 ~/OMNISTACK/FUSION-MASTER/hub/claude-auto-updater.py",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "taskDescription",
+      "type": "promptString",
+      "description": "Describe the task (agent-manager will auto-assign optimal agents)",
+      "default": "build feature for current project"
+    }
+  ]
+}

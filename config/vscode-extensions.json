@@ -1,0 +1,42 @@
+{
+  "recommendations": [
+    // ── Pattern recognition layer (wired + auto-process) ──────────────────
+    "ms-azuretools.vscode-docker",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "redhat.vscode-yaml",
+    "GitHub.vscode-pull-request-github",
+    "aaron-bond.better-comments",
+    "gruntfuggly.todo-tree",
+    "wayou.vscode-todo-highlight",
+
+    // ── Claude / AI editors ───────────────────────────────────────────────
+    "anthropics.claude-code",
+    "saoudrizwan.claude-dev",
+    "rooveterinaryinc.roo-cline",
+    "continue.continue",
+
+    // ── Code quality ──────────────────────────────────────────────────────
+    "biomejs.biome",
+    "ms-python.black-formatter",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "foxundermoon.shell-format",
+    "aaron-bond.better-comments",
+
+    // ── Git ───────────────────────────────────────────────────────────────
+    "mhutchie.git-graph",
+
+    // ── Docker / infra ────────────────────────────────────────────────────
+    "ms-vscode-remote.remote-containers",
+
+    // ── UI / themes ───────────────────────────────────────────────────────
+    "PKief.material-icon-theme",
+    "enkia.tokyo-night",
+    "johnpapa.vscode-peacock",
+
+    // ── Productivity ──────────────────────────────────────────────────────
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

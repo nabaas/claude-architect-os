@@ -1,0 +1,145 @@
+{
+  "name": "session-wrapup",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 11:59pm",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "59 23 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Karpathy Wrap-Up",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/CMNDCENTER/loki/loki_improver.py --session-end > /tmp/wrapup.log 2>&1; echo done"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Session End Script",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "bash /Users/nadirabaas/CMNDCENTER/scripts/loki-session-end.sh 2>/dev/null || echo 'script not found, skipping'"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Save Patterns to Supabase",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport os, json, datetime\nfrom supabase import create_client\nfrom pathlib import Path\nsb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])\nmem_path = Path.home() / 'CMNDCENTER/system/intelligence/compound-memory.json'\nif mem_path.exists():\n    mem = json.loads(mem_path.read_text())\n    domains = list(mem.get('domain_memory', {}).keys())\n    sb.table('sessions').insert({'date': datetime.date.today().isoformat(), 'domains': domains, 'ts': datetime.datetime.utcnow().isoformat()}).execute()\n    print('Session saved')\n\""
+      }
+    },
+    {
+      "id": "5",
+      "name": "Queue Overnight Opps",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport os, json\nfrom supabase import create_client\nsb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])\ntop = sb.table('opportunities').select('*').gte('roi_score', 75).eq('status', 'open').order('roi_score', desc=True).limit(5).execute().data\nwith open('/tmp/tonight-opps.json', 'w') as f: json.dump(top, f)\nprint(f'{len(top)} opps queued for overnight')\n\""
+      }
+    },
+    {
+      "id": "6",
+      "name": "Notify Wrapup Done",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1350,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --title 'Day Complete' --body 'Patterns saved. Overnight queue ready. AutoResearch at 3am.' --score 70"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 11:59pm": {
+      "main": [
+        [
+          {
+            "node": "Karpathy Wrap-Up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Karpathy Wrap-Up": {
+      "main": [
+        [
+          {
+            "node": "Session End Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session End Script": {
+      "main": [
+        [
+          {
+            "node": "Save Patterns to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Patterns to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Queue Overnight Opps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Overnight Opps": {
+      "main": [
+        [
+          {
+            "node": "Notify Wrapup Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-session-wrapup-v1"
+}

@@ -1,0 +1,97 @@
+{
+  "id": "compound-loop-nightly-v1",
+  "name": "COMPOUND LOOP — Nightly Intelligence Growth",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 2 * * *" }] }
+      },
+      "name": "Nightly 2am Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "source ~/CMNDCENTER/.env && python3 ~/OMNISTACK/FUSION-MASTER/hub/compound-loop.py >> ~/CMNDCENTER/logs/compound-loop.log 2>&1 &"
+      },
+      "name": "Run Compound Loop",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/gap-detected",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [{ "name": "source", "value": "compound-loop" }, { "name": "action", "value": "gap_check" }]
+        }
+      },
+      "name": "Trigger Gap Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "command": "python3 ~/OMNISTACK/FUSION-MASTER/hub/claude-auto-updater.py --quick >> ~/CMNDCENTER/logs/auto-updater.log 2>&1"
+      },
+      "name": "Run Auto-Updater",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "command": "python3 ~/CMNDCENTER/wallpapers/gen_wall_fusion.py && osascript -e 'tell application \"Finder\" to set desktop picture to POSIX file \"/Users/nadirabaas/CMNDCENTER/wallpapers/fusion_today.png\"'"
+      },
+      "name": "Refresh Wallpaper",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "command": "cat ~/CMNDCENTER/system/intelligence/compound-memory.json | python3 -c \"import json,sys; m=json.load(sys.stdin); gl=m.get('global_learnings',[]); print(f'Patterns: {len(gl)} | Last: {m.get(\\\"_meta\\\",{}).get(\\\"last_updated\\\",\\\"unknown\\\")}')\" 2>/dev/null || echo 'Memory: OK'"
+      },
+      "name": "Memory Status",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [900, 460]
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = $input.all();\nconst wallResult = out[0]?.json?.stdout || '';\nconst memResult = out[1]?.json?.stdout || '';\nreturn [{ json: { wallpaper: wallResult.trim(), memory: memResult.trim(), timestamp: new Date().toISOString() } }];"
+      },
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "position": [1120, 380]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{$env.TELEGRAM_BOT_TOKEN}}/sendMessage",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "chat_id", "value": "={{$env.TELEGRAM_CHAT_ID}}" },
+            { "name": "text", "value": "=🔄 *Nightly Compound Loop Started*\n{{$node['Memory Status'].json.stdout}}\nWallpaper: refreshed\nTime: {{$now}}" },
+            { "name": "parse_mode", "value": "Markdown" }
+          ]
+        }
+      },
+      "name": "Telegram Notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Nightly 2am Trigger": { "main": [[{ "node": "Run Compound Loop", "type": "main", "index": 0 }]] },
+    "Run Compound Loop": {
+      "main": [[
+        { "node": "Trigger Gap Check", "type": "main", "index": 0 },
+        { "node": "Run Auto-Updater", "type": "main", "index": 0 }
+      ]]
+    },
+    "Run Auto-Updater": { "main": [[{ "node": "Refresh Wallpaper", "type": "main", "index": 0 }]] },
+    "Refresh Wallpaper": { "main": [[{ "node": "Memory Status", "type": "main", "index": 0 }]] },
+    "Memory Status": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
+    "Aggregate Results": { "main": [[{ "node": "Telegram Notify", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "compound-loop" }, { "name": "overnight" }, { "name": "auto-upgrade" }]
+}

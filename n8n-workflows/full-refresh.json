@@ -1,0 +1,224 @@
+{
+  "name": "full-refresh",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 4pm",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        400
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 16 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "w1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        100,
+        600
+      ],
+      "parameters": {
+        "path": "full-intelligence",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "2",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        350,
+        500
+      ],
+      "parameters": {
+        "mode": "passThrough",
+        "output": "input1"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Run Research Aggregator",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        500
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/pipelines/research-aggregator.py --mode refresh --output /tmp/refresh-results.json"
+      }
+    },
+    {
+      "id": "4",
+      "name": "WAND Quick Scan",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER && source .env && python3 WAND/wand_scan.py --quick --output /tmp/wand-refresh.json"
+      }
+    },
+    {
+      "id": "5",
+      "name": "ROI Rescore All",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/CMNDCENTER/roi-brain/scorer.py --rescan-open --merge /tmp/refresh-results.json /tmp/wand-refresh.json --output /tmp/full-scored.json"
+      }
+    },
+    {
+      "id": "6",
+      "name": "Update Compound Memory",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/CMNDCENTER/loki/loki_improver.py --session-update --input /tmp/full-scored.json"
+      }
+    },
+    {
+      "id": "7",
+      "name": "Notify Top 3",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1350,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --from-file /tmp/full-scored.json --threshold 72"
+      }
+    },
+    {
+      "id": "8",
+      "name": "Refresh Wallpaper",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1600,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --from-file /tmp/full-scored.json --threshold 75 && launchctl kickstart -k gui/$(id -u)/com.cmndcenter.wallpaper 2>/dev/null || true"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 4pm": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Run Research Aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WAND Quick Scan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Research Aggregator": {
+      "main": [
+        [
+          {
+            "node": "ROI Rescore All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WAND Quick Scan": {
+      "main": [
+        [
+          {
+            "node": "ROI Rescore All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROI Rescore All": {
+      "main": [
+        [
+          {
+            "node": "Update Compound Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Compound Memory": {
+      "main": [
+        [
+          {
+            "node": "Notify Top 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Top 3": {
+      "main": [
+        [
+          {
+            "node": "Refresh Wallpaper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-full-refresh-v1"
+}

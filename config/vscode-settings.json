@@ -1,0 +1,499 @@
+{
+  // ════════════════════════════════════════════════════════════════════════════
+  // OMNISTACK — Workspace Settings
+  // Single source of truth for all AI editors: Claude Code, Cline, Continue,
+  // Aider, Roo-Cline. n8n webhooks use dynamic dispatch via n8n-dispatch.sh.
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // ── Editor baseline ─────────────────────────────────────────────────────────
+  "editor.fontSize": 15,
+  "editor.fontFamily": "Fira Code, Cascadia Code, monospace",
+  "editor.fontLigatures": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.rulers": [100],
+  "files.autoSave": "afterDelay",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.suggestSelection": "first",
+  "editor.wordWrap": "off",
+  "editor.minimap.enabled": false,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.linkedEditing": true,
+  "editor.accessibilitySupport": "off",
+
+  // ── Completions / IntelliSense ───────────────────────────────────────────────
+  "editor.suggest.showMethods": true,
+  "editor.suggest.showFunctions": true,
+  "editor.suggest.showConstructors": true,
+  "editor.suggest.showVariables": true,
+  "editor.suggest.showClasses": true,
+  "editor.suggest.showModules": true,
+  "editor.suggest.showProperties": true,
+  "editor.suggest.showKeywords": true,
+  "editor.suggest.showSnippets": true,
+  "editor.suggest.insertMode": "replace",
+  "editor.quickSuggestionsDelay": 0,
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    "strings": "on"
+  },
+
+  // ── Inlay hints (TypeScript + Python) ────────────────────────────────────────
+  "js/ts.inlayHints.parameterNames.enabled": "all",
+  "js/ts.inlayHints.variableTypes.enabled": true,
+  "js/ts.inlayHints.functionLikeReturnTypes.enabled": true,
+  "js/ts.inlayHints.propertyDeclarationTypes.enabled": true,
+  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.analysis.inlayHints.callArgumentNames": "all",
+
+  // ── Theme ────────────────────────────────────────────────────────────────────
+  "workbench.colorTheme": "Tokyo Night",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.tree.indent": 16,
+  "explorer.compactFolders": false,
+  "peacock.color": "#7c6fff",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#aaa2ff",
+    "activityBar.background": "#aaa2ff",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#df1300",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#aaa2ff",
+    "statusBar.background": "#7c6fff",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#4e3cff",
+    "statusBarItem.remoteBackground": "#7c6fff",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#7c6fff",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#7c6fff99",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+
+  // ── File nesting (keeps explorer clean) ──────────────────────────────────────
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.test.ts, ${capture}.spec.ts",
+    "*.tsx": "${capture}.test.tsx, ${capture}.stories.tsx, ${capture}.module.css",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc, .nvmrc",
+    "docker-compose.yml": "docker-compose.*.yml, .dockerignore, Dockerfile*",
+    ".env": ".env.*, .envrc",
+    "tsconfig.json": "tsconfig.*.json",
+    "*.prisma": "*.prisma"
+  },
+
+  // ── Claude Code ─────────────────────────────────────────────────────────────
+  "claude.additionalDirectories": [
+    "/Users/nadirabaas/OMNISTACK/FUSION-MASTER",
+    "/Users/nadirabaas/OMNISTACK/overlays/ai-fusion-stack-v1",
+    "/Users/nadirabaas/OMNISTACK/overlays/ai-fusion-stack-v1/agents",
+    "/Users/nadirabaas/CMNDCENTER",
+    "/Users/nadirabaas/CMNDCENTER/loki",
+    "/Users/nadirabaas/CMNDCENTER/WAND",
+    "/Users/nadirabaas/CMNDCENTER/roi-brain",
+    "/Users/nadirabaas/CMNDCENTER/youtube-pipeline",
+    "/Users/nadirabaas/CMNDCENTER/system",
+    "/Users/nadirabaas/CMNDCENTER/repos/SuperClaude_Framework"
+  ],
+
+  // ── Cline (saoudrizwan.claude-dev) ───────────────────────────────────────────
+  "cline.customInstructions": "Read ~/OMNISTACK/FUSION-MASTER/CLAUDE.md at session start. Route all tasks via STACK-WIRING-PAIRS.md. Check compound-memory.json for existing patterns before starting. After any meaningful task, fire: bash /Users/nadirabaas/CMNDCENTER/scripts/n8n-dispatch.sh fusion-trigger <<< '{\"source\":\"cline\",\"task\":\"done\"}'",
+  "cline.apiProvider": "anthropic",
+  "cline.apiModelId": "claude-sonnet-4-6",
+
+  // ── Continue.dev ─────────────────────────────────────────────────────────────
+  "continue.defaultModel": "Claude Sonnet 4.6 (Primary)",
+  "continue.enableTabAutocomplete": true,
+  "continue.tabAutocompleteModel": "LiteLLM Gateway (Fast)",
+
+  // ── Aider ─────────────────────────────────────────────────────────────────────
+  "aider.autoStart": false,
+  "aider.model": "claude-sonnet-4-6",
+  "aider.editorModel": "claude-haiku-4-5-20251001",
+  "aider.extraArgs": [
+    "--read", "/Users/nadirabaas/OMNISTACK/FUSION-MASTER/CLAUDE.md",
+    "--read", "/Users/nadirabaas/CMNDCENTER/system/intelligence/compound-memory.json",
+    "--no-auto-commit",
+    "--cache-prompts"
+  ],
+
+  // ── Roo-Cline ─────────────────────────────────────────────────────────────────
+  "roo-cline.customInstructions": "FUSION-MASTER mode. Read ~/OMNISTACK/FUSION-MASTER/CLAUDE.md at session start. Route: ai→loki, code→python-expert→reviewer, infra→devops-architect, research→deep-research. On completion: bash ~/CMNDCENTER/scripts/n8n-dispatch.sh fusion-trigger <<< '{\"source\":\"roo\"}'",
+  "roo-cline.apiProvider": "anthropic",
+  "roo-cline.apiModelId": "claude-sonnet-4-6",
+
+  // ── Terminal ─────────────────────────────────────────────────────────────────
+  "terminal.integrated.env.osx": {
+    "CMNDCENTER": "/Users/nadirabaas/CMNDCENTER",
+    "FUSION": "/Users/nadirabaas/OMNISTACK/FUSION-MASTER",
+    "OVERLAY": "/Users/nadirabaas/OMNISTACK/overlays/ai-fusion-stack-v1",
+    "OMNISTACK": "/Users/nadirabaas/OMNISTACK",
+    "N8N_WEBHOOK_URL": "http://localhost:5678",
+    "PATH": "/Users/nadirabaas/.local/bin:/usr/local/bin:/usr/bin:/bin:${env:PATH}"
+  },
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.persistentSessionReviveProcess": "onExitAndWindowClose",
+  "terminal.integrated.tabs.enabled": true,
+
+  // ── Language formatters ───────────────────────────────────────────────────────
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.tabSize": 4
+  },
+  "[javascript][typescript][typescriptreact][javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json][jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+
+
+  // ── Python ────────────────────────────────────────────────────────────────────
+  "python.terminal.useEnvFile": true,
+  "python.defaultInterpreterPath": "/usr/local/bin/python3",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+
+  // ── TypeScript ────────────────────────────────────────────────────────────────
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "js/ts.preferences.importModuleSpecifier": "relative",
+
+  // ── GitLens — repo intelligence + plan/todo surface ──────────────────────────
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.currentLine.enabled": true,
+  "gitlens.currentLine.format": "${author}, ${agoOrDate} · ${message}",
+  "gitlens.codeLens.enabled": true,
+  "gitlens.codeLens.recentChange.enabled": true,
+  "gitlens.codeLens.authors.enabled": true,
+  "gitlens.blame.highlight.enabled": true,
+  "gitlens.views.fileHistory.enabled": true,
+  "gitlens.views.lineHistory.enabled": true,
+  "gitlens.views.worktrees.enabled": true,
+  "gitlens.views.stashes.enabled": true,
+  "gitlens.views.commits.showBranchComparison": "working",
+  "gitlens.statusBar.enabled": true,
+  "gitlens.statusBar.format": "${author}, ${agoOrDate}",
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.postCommitCommand": "none",
+
+  // ── Error Lens — full diagnostic surface (error + warn + info + hint) ─────────
+  "errorLens.enabledDiagnosticLevels": ["error", "warning", "info", "hint"],
+  "errorLens.followCursor": "allLines",
+  "errorLens.messageEnabled": true,
+  "errorLens.delay": 300,
+  "errorLens.scrollbarHackEnabled": true,
+  "errorLens.statusBarIconsEnabled": true,
+  "errorLens.statusBarMessageEnabled": true,
+  "errorLens.gutterIconsEnabled": true,
+
+  // ── Docker — container control + live diagnostics ─────────────────────────────
+  "docker.commands.attach": "container",
+  "docker.containers.description": ["ContainerName", "Status", "Ports"],
+  "docker.containers.groupBy": "None",
+  "docker.containers.sortBy": "CreatedTime",
+  "docker.images.sortBy": "CreatedTime",
+  "docker.composeCommand": "docker compose",
+  "docker.showStartPage": false,
+  "docker.explorerRefreshInterval": 5000,
+
+  // ── YAML schemas — docker-compose + GitHub Actions + n8n workflows ────────────
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": [
+      "docker-compose*.yml",
+      "docker-compose*.yaml",
+      "**/docker/*.yml"
+    ],
+    "https://json.schemastore.org/github-workflow.json": [
+      ".github/workflows/*.yml",
+      ".github/workflows/*.yaml"
+    ]
+  },
+  "yaml.validate": true,
+  "yaml.hover": true,
+  "yaml.completion": true,
+  "yaml.format.enable": true,
+
+  // ── GitHub Pull Requests — PR/issue plan surface ──────────────────────────────
+  "githubPullRequests.fileListLayout": "tree",
+  "githubPullRequests.showInSCM": true,
+  "githubPullRequests.pullBranch": "prompt",
+  "githubPullRequests.defaultMergeMethod": "squash",
+  "githubPullRequests.focusedMode": true,
+  "githubIssues.issueBranchTitle": "issue-${issueNumber}",
+  "githubIssues.workingIssueFormatScm": "#${issueNumber} ${title}",
+
+  // ── File watcher / search exclusions ─────────────────────────────────────────
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true,
+    "**/__pycache__/**": true,
+    "**/logs/**": true,
+    "**/*.pyc": true,
+    "**/vector-db/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.DS_Store": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/logs": true,
+    "**/__pycache__": true,
+    "**/vector-db": true,
+    "**/dist": true,
+    "**/.next": true
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // PATTERN RECOGNITION LAYER — visual surface + auto-process wiring
+  // All 5 extensions + better-comments + todo-tree + todo-highlight converge here
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  // ── Token color customizations — patterns glow in editor ─────────────────────
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "comment.line.double-slash",
+        "settings": { "foreground": "#6b7280" }
+      },
+      {
+        "name": "TODO pattern",
+        "scope": "comment",
+        "settings": {}
+      }
+    ]
+  },
+
+  // ── Better Comments — pattern-coded comment colors ────────────────────────────
+  "better-comments.tags": [
+    {
+      "tag": "TODO",
+      "color": "#3b82f6",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    },
+    {
+      "tag": "FIXME",
+      "color": "#ef4444",
+      "strikethrough": false,
+      "underline": true,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    },
+    {
+      "tag": "PLAN",
+      "color": "#f59e0b",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    },
+    {
+      "tag": "HACK",
+      "color": "#a855f7",
+      "strikethrough": false,
+      "underline": true,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": true
+    },
+    {
+      "tag": "NOTE",
+      "color": "#22c55e",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "!",
+      "color": "#ff6b6b",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    },
+    {
+      "tag": "ROUTE",
+      "color": "#7c6fff",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    },
+    {
+      "tag": "CHAIN",
+      "color": "#aaa2ff",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    }
+  ],
+  "better-comments.multilineComments": true,
+  "better-comments.highlightPlainText": false,
+
+  // ── Todo Tree — sidebar pattern tree ─────────────────────────────────────────
+  "todo-tree.general.tags": ["TODO", "FIXME", "PLAN", "HACK", "NOTE", "ROUTE", "CHAIN", "XXX", "REVIEW"],
+  "todo-tree.general.tagGroups": {
+    "ACTIONS": ["TODO", "FIXME"],
+    "PLANNING": ["PLAN", "REVIEW"],
+    "SYSTEM": ["ROUTE", "CHAIN"],
+    "DEBT": ["HACK", "XXX"]
+  },
+  "todo-tree.highlights.defaultHighlight": {
+    "icon": "alert",
+    "type": "text",
+    "foreground": "#ffffff",
+    "background": "#7c6fff",
+    "opacity": 80,
+    "iconColour": "#7c6fff"
+  },
+  "todo-tree.highlights.customHighlight": {
+    "TODO":   { "icon": "check",      "iconColour": "#3b82f6", "foreground": "#3b82f6",  "background": "#1e3a5f22" },
+    "FIXME":  { "icon": "bug",        "iconColour": "#ef4444", "foreground": "#ef4444",  "background": "#3b000022" },
+    "PLAN":   { "icon": "milestone",  "iconColour": "#f59e0b", "foreground": "#f59e0b",  "background": "#3b2a0022" },
+    "HACK":   { "icon": "tools",      "iconColour": "#a855f7", "foreground": "#a855f7",  "background": "#2e003b22" },
+    "NOTE":   { "icon": "note",       "iconColour": "#22c55e", "foreground": "#22c55e",  "background": "#00200a22" },
+    "ROUTE":  { "icon": "git-branch", "iconColour": "#7c6fff", "foreground": "#7c6fff",  "background": "#1a1040" },
+    "CHAIN":  { "icon": "link",       "iconColour": "#aaa2ff", "foreground": "#aaa2ff",  "background": "#1a1040" }
+  },
+  "todo-tree.tree.showCountsInTree": true,
+  "todo-tree.tree.showBadges": true,
+  "todo-tree.tree.groupedByTag": true,
+  "todo-tree.tree.autoRefresh": true,
+  "todo-tree.filtering.excludeGlobs": [
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/logs/**",
+    "**/.git/**",
+    "**/dist/**"
+  ],
+
+  // ── Todo Highlight — inline highlight fallback ────────────────────────────────
+  "todohighlight.isEnable": true,
+  "todohighlight.isCaseSensitive": true,
+  "todohighlight.include": [
+    "**/*.py", "**/*.ts", "**/*.tsx", "**/*.js",
+    "**/*.sh", "**/*.yaml", "**/*.yml", "**/*.json"
+  ],
+  "todohighlight.exclude": [
+    "**/node_modules/**", "**/__pycache__/**", "**/logs/**"
+  ],
+  "todohighlight.keywords": [
+    {
+      "text": "TODO:",
+      "color": "#fff",
+      "backgroundColor": "#3b82f6",
+      "borderRadius": "3px",
+      "fontWeight": "bold"
+    },
+    {
+      "text": "FIXME:",
+      "color": "#fff",
+      "backgroundColor": "#ef4444",
+      "borderRadius": "3px",
+      "fontWeight": "bold"
+    },
+    {
+      "text": "PLAN:",
+      "color": "#000",
+      "backgroundColor": "#f59e0b",
+      "borderRadius": "3px",
+      "fontWeight": "bold"
+    },
+    {
+      "text": "HACK:",
+      "color": "#fff",
+      "backgroundColor": "#a855f7",
+      "borderRadius": "3px",
+      "fontStyle": "italic"
+    },
+    {
+      "text": "ROUTE:",
+      "color": "#fff",
+      "backgroundColor": "#7c6fff",
+      "borderRadius": "3px",
+      "fontWeight": "bold"
+    }
+  ],
+
+  // ── Error Lens — pattern-aware severity colors ────────────────────────────────
+  "errorLens.errorBackground": "#ef444420",
+  "errorLens.errorForeground": "#ff7b7b",
+  "errorLens.warningBackground": "#f59e0b20",
+  "errorLens.warningForeground": "#fbbf24",
+  "errorLens.infoBackground": "#3b82f620",
+  "errorLens.infoForeground": "#60a5fa",
+  "errorLens.hintBackground": "#22c55e20",
+  "errorLens.hintForeground": "#4ade80",
+
+  // ── GitLens — pattern autolinks (commit messages reference PLAN/TODO/ROUTE) ───
+  "gitlens.autolinks": [
+    { "prefix": "TODO-",  "url": "https://github.com/search?q=TODO&type=issues" },
+    { "prefix": "PLAN-",  "url": "https://github.com/search?q=PLAN&type=issues" },
+    { "prefix": "ROUTE-", "url": "https://github.com/search?q=ROUTE&type=issues" }
+  ],
+  "gitlens.views.commits.files.layout": "tree",
+  "gitlens.views.searchAndCompare.files.layout": "tree",
+
+  // ── Auto-process: save actions ────────────────────────────────────────────────
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // ── Auto-process: file associations for pattern files ────────────────────────
+  "files.associations": {
+    "*.env.*": "properties",
+    "*.plist": "xml",
+    "docker-compose*.yml": "dockercompose",
+    "docker-compose*.yaml": "dockercompose",
+    "Dockerfile*": "dockerfile",
+    "*.fusion": "shellscript",
+    "compound-memory.json": "json",
+    "pattern-registry.json": "json",
+    "WIRING-STATUS.md": "markdown",
+    "STACK-WIRING-PAIRS.md": "markdown"
+  },
+
+  // ── Security ─────────────────────────────────────────────────────────────────
+  "security.workspace.trust.enabled": false
+}

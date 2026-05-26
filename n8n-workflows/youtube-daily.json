@@ -1,0 +1,145 @@
+{
+  "name": "youtube-daily",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Trend Scraper",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && source ../.env && python3 modules/trend_scraper.py --output /tmp/trends.json"
+      }
+    },
+    {
+      "id": "3",
+      "name": "VCP Scorer",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && python3 modules/vcp_scorer.py --input /tmp/trends.json --output /tmp/trends-scored.json --top 5"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Script Engine",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && source ../.env && python3 modules/script_engine.py --input /tmp/trends-scored.json --output /tmp/scripts-ready.json"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Notify Content Ready",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --from-file /tmp/trends-scored.json --threshold 65"
+      }
+    },
+    {
+      "id": "6",
+      "name": "Notion Sync",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1350,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && source ../.env && python3 modules/notion_sync.py --input /tmp/scripts-ready.json"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 8am": {
+      "main": [
+        [
+          {
+            "node": "Trend Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trend Scraper": {
+      "main": [
+        [
+          {
+            "node": "VCP Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VCP Scorer": {
+      "main": [
+        [
+          {
+            "node": "Script Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Script Engine": {
+      "main": [
+        [
+          {
+            "node": "Notify Content Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Content Ready": {
+      "main": [
+        [
+          {
+            "node": "Notion Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-youtube-daily-v1"
+}
