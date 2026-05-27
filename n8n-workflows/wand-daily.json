@@ -1,0 +1,155 @@
+{
+  "name": "wand-daily",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Run WAND Scan",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER && source .env && python3 WAND/wand_scan.py --json > /tmp/wand-results.json 2>&1; echo $?"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Read Results",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "filePath": "/tmp/wand-results.json"
+      }
+    },
+    {
+      "id": "4",
+      "name": "ROI Score Each",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER && source .env && python3 roi-brain/scorer.py --input /tmp/wand-results.json --output /tmp/wand-scored.json"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Notify All Channels",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --from-file /tmp/wand-scored.json --threshold 70"
+      }
+    },
+    {
+      "id": "6",
+      "name": "Trigger Full Intelligence",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1350,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/full-intelligence",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "wand-daily"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 7am": {
+      "main": [
+        [
+          {
+            "node": "Run WAND Scan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run WAND Scan": {
+      "main": [
+        [
+          {
+            "node": "Read Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Results": {
+      "main": [
+        [
+          {
+            "node": "ROI Score Each",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROI Score Each": {
+      "main": [
+        [
+          {
+            "node": "Notify All Channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify All Channels": {
+      "main": [
+        [
+          {
+            "node": "Trigger Full Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "errorWorkflow": "error-handler"
+  },
+  "id": "fusion-wand-daily-v1"
+}

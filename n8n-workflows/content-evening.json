@@ -1,0 +1,122 @@
+{
+  "name": "content-evening",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 10pm",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 22 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Generate Shorts",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && source ../.env && python3 modules/script_engine.py --mode shorts --top 3 --output /tmp/shorts-ready.json 2>/dev/null || echo '[]' > /tmp/shorts-ready.json"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Podcast Mirror",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && source ../.env && python3 modules/podcast_mirror.py --output /tmp/podcast-clips.json 2>/dev/null || echo 'skipped'"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Email Brief",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/CMNDCENTER/youtube-pipeline && source ../.env && python3 modules/email_brief.py --input /tmp/shorts-ready.json 2>/dev/null || echo 'skipped'"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Notify Content Queue",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && SHORTS=$(python3 -c \"import json; d=json.load(open('/tmp/shorts-ready.json')); print(len(d))\" 2>/dev/null || echo 0) && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --title \"Content Queue: $SHORTS shorts ready\" --body 'Review /tmp/shorts-ready.json \u2014 queue for upload' --score 74"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 10pm": {
+      "main": [
+        [
+          {
+            "node": "Generate Shorts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Shorts": {
+      "main": [
+        [
+          {
+            "node": "Podcast Mirror",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Podcast Mirror": {
+      "main": [
+        [
+          {
+            "node": "Email Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Brief": {
+      "main": [
+        [
+          {
+            "node": "Notify Content Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-content-evening-v1"
+}

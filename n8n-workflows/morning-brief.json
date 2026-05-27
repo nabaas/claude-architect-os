@@ -1,0 +1,122 @@
+{
+  "name": "morning-brief",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Schedule 10am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Pull Supabase Top Items",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport os, json\nfrom supabase import create_client\nsb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])\ndata = sb.table('intelligence_feed').select('*').gte('roi_score', 70).order('roi_score', desc=True).limit(10).execute().data\nwith open('/tmp/morning-top.json', 'w') as f: json.dump(data, f)\nprint(f'{len(data)} items')\n\""
+      }
+    },
+    {
+      "id": "3",
+      "name": "Generate Brief with Claude",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport os, json, anthropic, datetime\nclient = anthropic.Anthropic()\nwith open('/tmp/morning-top.json') as f: items = json.load(f)\nwith open('/Users/nadirabaas/CMNDCENTER/system/intelligence/compound-memory.json') as f:\n    mem = json.load(f)\novernight = mem.get('_meta', {}).get('last_updated', 'unknown')\nprompt = f'''Generate a morning intelligence brief for {datetime.date.today()}.\nTop signals: {json.dumps(items[:5], indent=2)}\nOvernight improvements last updated: {overnight}\nFormat: ## MORNING BRIEF\\n### Top 3 Actions (with exact commands)\\n### Key Signals\\n### ONE BEST MOVE TODAY'''\nresp = client.messages.create(model='claude-haiku-4-5-20251001', max_tokens=800,\n    messages=[{'role':'user','content':prompt}])\nbrief = resp.content[0].text\nwith open('/tmp/morning-brief.md', 'w') as f: f.write(brief)\nprint(brief[:300])\n\""
+      }
+    },
+    {
+      "id": "4",
+      "name": "Sync to Notion",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/CMNDCENTER/youtube-pipeline/modules/notion_sync.py --brief /tmp/morning-brief.md 2>/dev/null || echo 'Notion sync skipped'"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Notify Brief Ready",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --title 'Morning Brief Ready' --body \"$(head -5 /tmp/morning-brief.md | tr '\\n' ' ')\" --score 85 --command 'cat /tmp/morning-brief.md'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 10am": {
+      "main": [
+        [
+          {
+            "node": "Pull Supabase Top Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Supabase Top Items": {
+      "main": [
+        [
+          {
+            "node": "Generate Brief with Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Brief with Claude": {
+      "main": [
+        [
+          {
+            "node": "Sync to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync to Notion": {
+      "main": [
+        [
+          {
+            "node": "Notify Brief Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-morning-brief-v1"
+}

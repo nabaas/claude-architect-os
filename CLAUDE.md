@@ -3,6 +3,7 @@
 > **BOOT SEQUENCE — Claude Code reads and executes these directives at every session start.**
 
 ```text
+00 MASTER PROMPT  Read ~/OMNISTACK/core/master-prompt.md FIRST — core laws, agent teams, control plane hierarchy.
 01 ROLE          Top-tier SE + systems architect + autonomous decision-maker. Ship/improve/wire every session.
 02 MEMORY LOAD   Read ~/.amsa/memory/karpathy_wrapup.json + patterns.json (top-10 confidence) before responding.
 03 GAP CHECK     Run system/gap-bridge.ts detectGaps() silently. Auto-fix low-severity. Queue high-severity gaps.
@@ -23,7 +24,130 @@
 18 SESSION END   bash ~/CMNDCENTER/scripts/loki-session-end.sh → Karpathy wrap-up → patterns → gaps → score
 19 SELF-DEV      2:55am self-development.ts → compound patterns → improve agent prompts → new capability specs
 20 REFERENCE     Full stack docs, all 37 agents, all 7 chains, all standards ↓
+21 AUTO-ADOPT    On clone/PR pull: run setup/install.sh → all files self-wire via adopt.sh + wire.sh + pattern-registry
+22 PERF LAYER    editor.inlineSuggest + quickSuggestions + formatOnSave + autoSave + extensions.autoUpdate active
 ```
+
+---
+
+## AUTO-ADOPTION PROTOCOL (runs on every `git pull` or `gh pr checkout`)
+
+When this repo is cloned or a PR is checked out, Claude executes this sequence automatically:
+
+```bash
+# Step 1 — Source env (always first, unlocks all API keys)
+source ~/CMNDCENTER/system/.env 2>/dev/null
+source ~/OMNISTACK/.env 2>/dev/null
+
+# Step 2 — Copy hooks to active scripts directory
+cp hooks/prompt-intelligence-engine.py ~/CMNDCENTER/scripts/
+cp hooks/pattern-pipeline-router.py    ~/CMNDCENTER/scripts/
+
+# Step 3 — Apply VS Code performance layer
+cp config/vscode-settings.json ~/OMNISTACK/.vscode/settings.json
+cp config/vscode-tasks.json    ~/OMNISTACK/.vscode/tasks.json
+cp config/vscode-extensions.json ~/OMNISTACK/.vscode/extensions.json
+
+# Step 4 — Copy agent engine + potentiation matrix
+cp agents/agent-manager.py          ~/OMNISTACK/FUSION-MASTER/hub/
+cp agents/potentiation-matrix.py    ~/OMNISTACK/FUSION-MASTER/hub/
+cp agents/potentiate-now.py         ~/OMNISTACK/FUSION-MASTER/hub/
+
+# Step 5 — Sync intelligence + pipeline scripts
+cp intelligence/research-aggregator.py ~/OMNISTACK/FUSION-MASTER/pipelines/
+cp intelligence/scorer.py               ~/CMNDCENTER/roi-brain/
+cp intelligence/wand_scan.py            ~/CMNDCENTER/WAND/
+cp intelligence/intellitradeX.py        ~/CMNDCENTER/intellitradeX/main.py
+cp pipelines/compound-loop.py          ~/OMNISTACK/FUSION-MASTER/hub/
+cp pipelines/quick-scan.py             ~/OMNISTACK/FUSION-MASTER/hub/
+cp pipelines/fusion-trigger.sh         ~/OMNISTACK/FUSION-MASTER/hub/
+cp pipelines/master-refresh.sh         ~/OMNISTACK/FUSION-MASTER/hub/
+
+# Step 6 — Re-import any new n8n workflows
+for f in n8n-workflows/*.json; do
+  name=$(basename "$f" .json)
+  docker cp "$f" omnistack-n8n-1:/tmp/${name}.json 2>/dev/null
+  docker exec omnistack-n8n-1 n8n import:workflow --input="/tmp/${name}.json" 2>/dev/null
+done
+
+# Step 7 — Run potentiation to wire new patterns into compound memory
+python3 ~/OMNISTACK/FUSION-MASTER/hub/potentiate-now.py
+
+# Step 8 — Refresh wallpaper with updated agent teams
+python3 ~/CMNDCENTER/wallpapers/gen_wall_fusion.py 2>/dev/null
+```
+
+**One command to run all 8 steps:**
+```bash
+bash setup/adopt-pr.sh
+```
+
+---
+
+## CLAUDE CODE COMMANDS (use these in every session)
+
+```
+/clear          → wipe context when hitting 200K limit; restart fresh
+/compact        → compress context to summary; use before large builds
+/cost           → check token spend before expensive multi-agent runs
+/doctor         → diagnose hook failures, MCP disconnects, auth issues
+/memory         → view what Claude has stored in memory this session
+/model          → switch model mid-session (opus for complex, haiku for fast)
+--continue      → resume last session context without re-reading all files
+--dangerously-skip-permissions → use only when setup/install.sh needs full access
+```
+
+**Context strategy:**
+- Sessions ≤50K tokens: run normally
+- Sessions 50K–150K: `/compact` to compress before next major task
+- Sessions >150K: `/clear` then reload with `source ~/OMNISTACK/.env && cat ~/OMNISTACK/core/master-prompt.md`
+
+---
+
+## PERFORMANCE LAYER (active in config/vscode-settings.json)
+
+```json
+"editor.inlineSuggest.enabled": true,
+"editor.quickSuggestions": {"other": true, "comments": false, "strings": true},
+"editor.formatOnSave": true,
+"files.autoSave": "afterDelay",
+"extensions.autoUpdate": true,
+"git.autofetch": true,
+"telemetry.telemetryLevel": "off",
+"terminal.integrated.defaultProfile.osx": "zsh",
+"workbench.startupEditor": "none"
+```
+
+---
+
+## HOOKS SETUP (one-time manual step)
+
+Claude Code → Settings → Hooks:
+
+```
+UserPromptSubmit: python3 ~/CMNDCENTER/scripts/prompt-intelligence-engine.py
+PostToolUse (Edit|Write): python3 ~/CMNDCENTER/scripts/pattern-pipeline-router.py
+```
+
+Or copy the template: `cp setup/claude-settings-template.json ~/.claude/projects/<slug>/settings.json`
+
+---
+
+## MCP SERVERS (wire once, active every session)
+
+```json
+{
+  "mcpServers": {
+    "github":     {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"]},
+    "filesystem": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "~/OMNISTACK", "~/CMNDCENTER"]},
+    "fetch":      {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-fetch"]},
+    "memory":     {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"]},
+    "supabase":   {"command": "npx", "args": ["-y", "@supabase/mcp-server-supabase", "--url", "http://localhost:54321"]}
+  }
+}
+```
+
+Add to `~/.claude/settings.json` → `mcpServers` key.
 
 ---
 
@@ -804,6 +928,105 @@ SessionEnd       → scripts/loki-session-end.sh   (Karpathy wrap-up + pattern s
 
 ---
 
+## COMMAND_CENTER_X INTEGRATION (v1.4.0)
+
+Six net-new systems absorbed from COMMAND_CENTER_X blueprint — no duplicates, all wired into existing domino chain.
+
+### New Stack Components
+```
+hummingbot    localhost:8080/hummingbot   Arbitrage + market-making (beside freqtrade trend-following)
+lean          localhost:5555              Institutional backtesting (QuantConnect multi-asset)
+qlib          localhost:8888              Microsoft quant ML — alpha mining, factor research
+openbb        localhost:8000/openbb       Financial intelligence — macro scan, Bloomberg OSS
+the0          localhost:9000              Trading orchestrator — routes qlib/OpenBB → freqtrade/hummingbot
+fenixai       localhost:9001              Multi-agent trading reasoner — validates signals pre-execution
+```
+
+### New Ollama Models (pulled automatically)
+```
+deepseek-coder   → code-heavy tasks, local execution, zero-cost ops
+llama3           → general reasoning, fast local inference
+mistral          → instruction-following, tool use, structured output
+```
+
+All route through LiteLLM:4000. Add to routing table:
+```yaml
+model_list:
+  - model_name: deepseek-coder
+    litellm_params: { model: "ollama/deepseek-coder", api_base: "http://localhost:11434" }
+  - model_name: llama3
+    litellm_params: { model: "ollama/llama3", api_base: "http://localhost:11434" }
+  - model_name: mistral
+    litellm_params: { model: "ollama/mistral", api_base: "http://localhost:11434" }
+```
+
+### New Potentiation Chains (added to pattern-registry v1.4.0)
+```
+trading_intelligence  openbb → qlib → the0 → freqtrade+hummingbot → intellitradeX   ROI ×3.8
+command_center_x      openbb → qlib → fenixai → the0 → freqtrade → hummingbot        ROI ×4.2
+```
+
+### New Hotkeys (wired to shortcuts.sh)
+```
+fswarm      → AI Swarm: all 40 stacks domino       (CMD+SHIFT+A)
+ftrade      → Full trading chain                   (CMD+SHIFT+T)
+fyt         → YouTube automation pipeline          (CMD+SHIFT+Y)
+fscan       → Opportunity scanner (quick-scan+ROI) (CMD+SHIFT+O)
+fdash       → Intelligence dashboard refresh       (CMD+SHIFT+D)
+fvoice      → AIRI / Open-LLM-VTuber avatar        (CMD+SHIFT+V)
+frevenue    → Revenue streams status               (no hotkey)
+fintel-full → OpenBB→qlib→the0→freqtrade chain     (no hotkey)
+```
+
+### New Revenue Streams (~/CMNDCENTER/revenue/)
+```
+FlipScout         — Product arbitrage scanner
+DealScout         — Deal discovery + ROI scoring
+SteamStream       — Steam/gaming trend monetization
+AffiliateFunnels  — AI-generated affiliate content
+TrendSignals      — Trend prediction → early-mover signals
+IntelliTradeX     — Crypto trading P&L (existing)
+```
+
+### New Agent Swarm Model (worktrees)
+```
+~/CMNDCENTER/worktrees/
+  frontend-agent/   — UI/dashboard components
+  backend-agent/    — API + data pipeline
+  testing-agent/    — QA + integration validation
+  research-agent/   — GitHub trending + HN scan
+  trading-agent/    — Signal processing + execution
+  automation-agent/ — n8n + LaunchAgent management
+```
+
+Each worktree runs isolated git checkout; use `loki` or Claude worktree mode to parallelize builds.
+
+### Auto-Integration Protocol (fires nightly via compound-loop.py)
+```
+1. quick-scan.py fires after every significant action (~30s background)
+2. compound-loop.py runs 2am–6:30am: SEARCH→SCORE→ADOPT→PROTOTYPE→WIRE→MEMORIZE
+3. Any repo ROI ≥ 78 → adopt.sh auto-clones + registers + creates CLAUDE.md
+4. New tools → TRIGGER-DICTIONARY.md updated + n8n webhook added
+5. Pattern confidence += 0.05 per reuse; decays if unused 30d
+6. Morning brief (10am) surfaces overnight gains
+```
+
+### Trading Intelligence Flow (COMMAND_CENTER_X Chain)
+```
+OpenBB (macro scan)
+  └→ qlib (alpha model: factor → signal)
+      └→ FenixAI (LLM reasoning: validate signal)
+          └→ the0 (orchestrate: route to execution engine)
+              ├→ freqtrade (trend-following execution)
+              └→ hummingbot (arbitrage + market-making)
+                  └→ IntelliTradeX (unified P&L tracking)
+                      └→ ROI Brain (score outcome → compound memory)
+```
+
+Kill switch: `touch ~/CMNDCENTER/intellitradeX/.HALT` stops all trading; `touch ~/OMNISTACK/.HALT` stops everything.
+
+---
+
 ## OPERATING PRINCIPLES
 
 1. **Output over process.** Ship something every session. Code, deployment, trade, content.
@@ -816,3 +1039,5 @@ SessionEnd       → scripts/loki-session-end.sh   (Karpathy wrap-up + pattern s
 8. **Fail fast, fix permanently.** When something breaks, root-cause-analyst finds the permanent fix.
 9. **Every session improves the next.** Session end is not cleanup — it is the investment in tomorrow.
 10. **The goal is autonomous compounding.** Each chain should eventually run without human input.
+11. **No doubles.** Before adopting a new tool, check pattern-registry.json. If same domain+role exists, potentiate — don't duplicate.
+12. **Every new tool must feed an existing chain.** Isolated tools have ROI = 0. Wire it or skip it.

@@ -1,0 +1,74 @@
+{
+  "_instructions": "Copy this file to ~/.claude/projects/<YOUR_PROJECT_SLUG>/settings.json OR to .claude/settings.json in any project. Remove this _instructions key first.",
+
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(bash:*)",
+      "Bash(git:*)",
+      "Bash(docker:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(jq:*)",
+      "Bash(launchctl:*)",
+      "Bash(ollama:*)",
+      "Bash(pip3:*)",
+      "Bash(source:*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo rm:*)",
+      "Bash(git push --force:*)"
+    ],
+    "additionalDirectories": [
+      "~/OMNISTACK",
+      "~/CMNDCENTER",
+      "~/CMNDCENTER/repos",
+      "~/CMNDCENTER/system",
+      "~/CMNDCENTER/loki",
+      "~/CMNDCENTER/WAND",
+      "~/CMNDCENTER/intellitradeX",
+      "~/CMNDCENTER/roi-brain",
+      "~/OMNISTACK/FUSION-MASTER",
+      "~/OMNISTACK/core"
+    ]
+  },
+
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/CMNDCENTER/scripts/prompt-intelligence-engine.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/CMNDCENTER/scripts/pattern-pipeline-router.py"
+          }
+        ]
+      }
+    ]
+  },
+
+  "env": {
+    "CMNDCENTER": "~/CMNDCENTER",
+    "FUSION": "~/OMNISTACK/FUSION-MASTER"
+  },
+
+  "includeCoAuthoredBy": true,
+  "cleanupPeriodDays": 30
+}

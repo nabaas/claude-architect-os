@@ -1,0 +1,134 @@
+{
+  "intellitradeX": {
+    "task_template": "scan crypto signals trading freqtrade hummingbot",
+    "domain": "trading",
+    "agents": [
+      {
+        "name": "loki-coordinator",
+        "model": "opus",
+        "phase": 0
+      },
+      {
+        "name": "python-expert",
+        "model": "sonnet",
+        "phase": 3
+      }
+    ],
+    "lead_agent": "loki-coordinator"
+  },
+  "WAND": {
+    "task_template": "scan content trends YouTube viral pipeline",
+    "domain": "content",
+    "agents": [
+      {
+        "name": "loki-coordinator",
+        "model": "opus",
+        "phase": 0
+      },
+      {
+        "name": "python-expert",
+        "model": "sonnet",
+        "phase": 3
+      }
+    ],
+    "lead_agent": "loki-coordinator"
+  },
+  "roi-brain": {
+    "task_template": "score ROI opportunities research rank",
+    "domain": "research",
+    "agents": [
+      {
+        "name": "loki-coordinator",
+        "model": "opus",
+        "phase": 0
+      },
+      {
+        "name": "deep-research",
+        "model": "opus",
+        "phase": 1
+      }
+    ],
+    "lead_agent": "loki-coordinator"
+  },
+  "loki-builder": {
+    "task_template": "build product SaaS 37 agents architecture",
+    "domain": "build",
+    "agents": [
+      {
+        "name": "loki-coordinator",
+        "model": "opus",
+        "phase": 0
+      },
+      {
+        "name": "deep-research",
+        "model": "opus",
+        "phase": 1
+      },
+      {
+        "name": "system-architect",
+        "model": "opus",
+        "phase": 2
+      },
+      {
+        "name": "python-expert",
+        "model": "sonnet",
+        "phase": 3
+      },
+      {
+        "name": "security-engineer",
+        "model": "opus",
+        "phase": 4
+      },
+      {
+        "name": "code-reviewer",
+        "model": "sonnet",
+        "phase": 4
+      },
+      {
+        "name": "monetization-strategist",
+        "model": "sonnet",
+        "phase": 6
+      },
+      {
+        "name": "self-review",
+        "model": "sonnet",
+        "phase": 7
+      }
+    ],
+    "lead_agent": "loki-coordinator"
+  },
+  "youtube-pipeline": {
+    "task_template": "content video shorts script upload",
+    "domain": "content",
+    "agents": [
+      {
+        "name": "loki-coordinator",
+        "model": "opus",
+        "phase": 0
+      },
+      {
+        "name": "python-expert",
+        "model": "sonnet",
+        "phase": 3
+      }
+    ],
+    "lead_agent": "loki-coordinator"
+  },
+  "research-sweep": {
+    "task_template": "research find adopt repos tools pipelines",
+    "domain": "research",
+    "agents": [
+      {
+        "name": "loki-coordinator",
+        "model": "opus",
+        "phase": 0
+      },
+      {
+        "name": "deep-research",
+        "model": "opus",
+        "phase": 1
+      }
+    ],
+    "lead_agent": "loki-coordinator"
+  }
+}

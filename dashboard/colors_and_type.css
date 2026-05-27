@@ -1,0 +1,255 @@
+/* ============================================================================
+   Claude Architect OS — Design Tokens
+   Visual language: operational HUD · terminal · financial-terminal density
+   Dark-first. Monospace-led. Claude-rooted warm neutrals.
+   ============================================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap");
+
+:root {
+  /* ── Type families ─────────────────────────────────────────────────── */
+  --font-mono: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  --font-display: "Space Grotesk", "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Instrument Serif", "Iowan Old Style", "Georgia", serif;
+
+  /* ── Greyscale (warm, claude-rooted) ───────────────────────────────── */
+  /* Backgrounds — near-black with a 5° warm tilt (the "graphite-coffee" floor) */
+  --void:      #07060a;   /* deepest, used behind cards / for letterbox */
+  --ink:       #0d0c10;   /* canvas/page background */
+  --carbon:    #14131a;   /* card/surface */
+  --graphite:  #1c1b24;   /* raised surface, hover */
+  --slate:     #2a2832;   /* borders / dividers */
+  --steel:     #3a3744;   /* strong border / chip */
+  --ash:       #5a5666;   /* muted text */
+  --fog:       #8b8798;   /* secondary text */
+  --bone:      #c9c4b8;   /* primary text on dark — warm cream */
+  --cream:     #e9e1cf;   /* high-emphasis text, headlines */
+  --paper:     #f6f1e3;   /* warm white for inverted surfaces */
+
+  /* ── Accent: Claude warm ───────────────────────────────────────────── */
+  --claude:        #d97757;  /* Claude orange — identity */
+  --claude-bright: #ef8a66;  /* hover / glow */
+  --claude-deep:   #b35a3d;  /* pressed / shadow */
+  --claude-wash:   rgba(217, 119, 87, 0.12);
+
+  /* ── Accent: phosphor (operational / running / healthy) ───────────── */
+  --phosphor:        #7ee787;
+  --phosphor-bright: #b2f2bb;
+  --phosphor-deep:   #2da44e;
+  --phosphor-wash:   rgba(126, 231, 135, 0.10);
+
+  /* ── Accent: amber (opportunity / signal / score) ──────────────────── */
+  --amber:        #f5a524;
+  --amber-bright: #ffc760;
+  --amber-deep:   #b27411;
+  --amber-wash:   rgba(245, 165, 36, 0.12);
+
+  /* ── Accent: crimson (alert / halt / failure / risk) ───────────────── */
+  --crimson:        #ff5d5d;
+  --crimson-bright: #ff8a8a;
+  --crimson-deep:   #b13333;
+  --crimson-wash:   rgba(255, 93, 93, 0.12);
+
+  /* ── Accent: cyan (data / telemetry / info) ────────────────────────── */
+  --cyan:        #7dd3fc;
+  --cyan-bright: #a9e6ff;
+  --cyan-deep:   #2b8ec1;
+  --cyan-wash:   rgba(125, 211, 252, 0.10);
+
+  /* ── Accent: violet (agents / intelligence / consciousness) ────────── */
+  --violet:        #a78bfa;
+  --violet-bright: #c7b3ff;
+  --violet-deep:   #6e54c4;
+  --violet-wash:   rgba(167, 139, 250, 0.12);
+
+  /* ── Semantic foreground ───────────────────────────────────────────── */
+  --fg-1: var(--cream);     /* headlines, primary content */
+  --fg-2: var(--bone);      /* body text */
+  --fg-3: var(--fog);       /* secondary, labels */
+  --fg-4: var(--ash);       /* muted, captions */
+  --fg-inverse: var(--ink);
+
+  /* ── Semantic backgrounds ──────────────────────────────────────────── */
+  --bg-1: var(--ink);       /* page */
+  --bg-2: var(--carbon);    /* card */
+  --bg-3: var(--graphite);  /* raised */
+  --bg-paper: var(--paper); /* inverted */
+
+  /* ── Semantic borders ──────────────────────────────────────────────── */
+  --border-1: var(--slate);
+  --border-2: var(--steel);
+  --border-hairline: rgba(201, 196, 184, 0.08);
+
+  /* ── Phase colors (the 7 agent phases) ─────────────────────────────── */
+  --phase-discover: var(--cyan);
+  --phase-design:   var(--violet);
+  --phase-build:    var(--phosphor);
+  --phase-quality:  var(--amber);
+  --phase-deploy:   var(--claude);
+  --phase-monetize: #f0c674;
+  --phase-operate:  var(--bone);
+
+  /* ── Score thresholds (ROI / Opportunity / Unusual Flow) ───────────── */
+  --score-elite:  var(--phosphor);   /* >= 80 */
+  --score-strong: var(--amber);      /* 60-79 */
+  --score-watch:  var(--cyan);       /* 40-59 */
+  --score-skip:   var(--ash);        /* < 40 */
+  --score-halt:   var(--crimson);    /* danger / halt */
+
+  /* ── Radii ─────────────────────────────────────────────────────────── */
+  --r-0: 0px;       /* terminals are sharp */
+  --r-1: 2px;       /* chips, badges */
+  --r-2: 4px;       /* small surfaces */
+  --r-3: 6px;       /* default for cards */
+  --r-4: 10px;      /* large cards */
+  --r-5: 14px;      /* hero containers */
+  --r-pill: 999px;
+
+  /* ── Elevation ─────────────────────────────────────────────────────── */
+  --shadow-0: none;
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px rgba(0, 0, 0, 0.55);
+  --shadow-glow-claude:   0 0 0 1px rgba(217, 119, 87, 0.35), 0 0 24px rgba(217, 119, 87, 0.18);
+  --shadow-glow-phosphor: 0 0 0 1px rgba(126, 231, 135, 0.30), 0 0 24px rgba(126, 231, 135, 0.16);
+  --shadow-glow-crimson:  0 0 0 1px rgba(255, 93, 93, 0.35), 0 0 24px rgba(255, 93, 93, 0.18);
+
+  /* ── Spacing scale (4px base) ──────────────────────────────────────── */
+  --s-0: 0;
+  --s-1: 2px;
+  --s-2: 4px;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 20px;
+  --s-7: 24px;
+  --s-8: 32px;
+  --s-9: 40px;
+  --s-10: 48px;
+  --s-11: 64px;
+  --s-12: 80px;
+
+  /* ── Type scale ────────────────────────────────────────────────────── */
+  --t-mono-2xs: 10px;   /* metadata, timestamps */
+  --t-mono-xs:  11px;   /* labels, badge text */
+  --t-mono-sm:  12px;   /* default UI label */
+  --t-mono-md:  13px;   /* default body in dense UIs */
+  --t-mono-lg:  14px;
+  --t-mono-xl:  16px;
+  --t-mono-2xl: 18px;
+
+  --t-display-sm:  16px;
+  --t-display-md:  20px;
+  --t-display-lg:  28px;   /* section heads */
+  --t-display-xl:  40px;   /* page heads */
+  --t-display-2xl: 64px;   /* hero numerals */
+  --t-display-3xl: 96px;   /* score readout, hero */
+
+  /* ── Motion ────────────────────────────────────────────────────────── */
+  --easing-snap:   cubic-bezier(0.2, 0, 0, 1);
+  --easing-glide:  cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-pop:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --d-quick:  120ms;
+  --d-base:   200ms;
+  --d-slow:   320ms;
+  --d-ambient: 1800ms;  /* breathing pulses, scanner sweeps */
+}
+
+/* ============================================================================
+   Semantic helpers — H1..H6, body, code, label, kbd, etc.
+   ============================================================================ */
+
+html, body {
+  background: var(--bg-1);
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-mono-md);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.font-mono    { font-family: var(--font-mono); }
+.font-display { font-family: var(--font-display); }
+.font-serif   { font-family: var(--font-serif); }
+
+/* — Headings — display sans, tight, all-caps friendly */
+.h-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--fg-1);
+}
+.h1 { font-family: var(--font-display); font-size: var(--t-display-xl); font-weight: 500; letter-spacing: -0.03em; line-height: 1.0; color: var(--fg-1); }
+.h2 { font-family: var(--font-display); font-size: var(--t-display-lg); font-weight: 500; letter-spacing: -0.025em; line-height: 1.05; color: var(--fg-1); }
+.h3 { font-family: var(--font-display); font-size: var(--t-display-md); font-weight: 600; letter-spacing: -0.015em; line-height: 1.15; color: var(--fg-1); }
+
+/* — Eyebrow / kicker / channel labels — mono, uppercase, tight-tracked */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--fg-3);
+}
+
+/* — Body & label — */
+.body  { font-family: var(--font-mono); font-size: var(--t-mono-md); color: var(--fg-2); line-height: 1.55; }
+.label { font-family: var(--font-mono); font-size: var(--t-mono-sm); color: var(--fg-3); }
+.cap   { font-family: var(--font-mono); font-size: var(--t-mono-xs); color: var(--fg-4); }
+
+/* — Numeric readouts — large monospaced figures with slashed zero feel */
+.readout {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.02em;
+  color: var(--fg-1);
+}
+
+/* — Code / pre — */
+code, pre, .code {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono-sm);
+  color: var(--phosphor-bright);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border-hairline);
+  padding: 1px 5px;
+  border-radius: var(--r-1);
+}
+pre.block {
+  display: block;
+  padding: var(--s-5);
+  border-radius: var(--r-3);
+  line-height: 1.6;
+  overflow: auto;
+}
+
+/* — kbd — terminal key */
+kbd {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono-xs);
+  font-weight: 600;
+  background: var(--graphite);
+  color: var(--bone);
+  border: 1px solid var(--steel);
+  border-bottom-width: 2px;
+  padding: 2px 6px;
+  border-radius: var(--r-1);
+  text-transform: uppercase;
+}
+
+/* — Pulse animation for "live" indicators — */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+  50%      { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
+}
+.pulse { animation: pulse-live var(--d-ambient) ease-in-out infinite; }
+
+/* — Scanner sweep — used for "scanning"/processing surfaces */
+@keyframes scan-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}

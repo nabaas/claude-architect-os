@@ -1,0 +1,223 @@
+{
+  "name": "github-push",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "GitHub Push Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "path": "github-push",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "2",
+      "name": "Extract Repo Info",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        350,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "repo",
+              "value": "={{ $json.repository?.full_name || 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "name": "branch",
+              "value": "={{ $json.ref?.replace('refs/heads/', '') || 'main' }}",
+              "type": "string"
+            },
+            {
+              "name": "pusher",
+              "value": "={{ $json.pusher?.name || 'auto' }}",
+              "type": "string"
+            },
+            {
+              "name": "ts",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3",
+      "name": "Validate Overlay",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/OMNISTACK/overlays/ai-fusion-stack-v1 && bash src/validate.sh > /tmp/validate-result.txt 2>&1; echo $?"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Run Scanner",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/OMNISTACK/overlays/ai-fusion-stack-v1 && bash src/scanner.sh > /tmp/scanner-result.txt 2>&1"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Auto Deploy If Flagged",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $env.FUSION_DEPLOY || '0' }}",
+              "value2": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6",
+      "name": "Deploy Stack",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1350,
+        200
+      ],
+      "parameters": {
+        "command": "cd /Users/nadirabaas/OMNISTACK/overlays/ai-fusion-stack-v1 && docker-compose -f docker/docker-compose.overlay.yml up -d"
+      }
+    },
+    {
+      "id": "7",
+      "name": "Log To Supabase",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1350,
+        400
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 -c \"\nimport json, os, datetime\nfrom supabase import create_client\nsb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_KEY'])\nsb.table('build_events').insert({'repo': '${{ $json.repo }}', 'branch': '${{ $json.branch }}', 'type': 'push', 'ts': datetime.datetime.utcnow().isoformat()}).execute()\nprint('Logged')\n\""
+      }
+    },
+    {
+      "id": "8",
+      "name": "Notify Push",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        1600,
+        300
+      ],
+      "parameters": {
+        "command": "source /Users/nadirabaas/CMNDCENTER/.env && python3 /Users/nadirabaas/OMNISTACK/FUSION-MASTER/notifications/auto-notify.py --title 'Push: ${{ $json.repo }}' --body 'Branch: ${{ $json.branch }} | Validated \u2713' --score 72"
+      }
+    }
+  ],
+  "connections": {
+    "GitHub Push Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Repo Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Repo Info": {
+      "main": [
+        [
+          {
+            "node": "Validate Overlay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Overlay": {
+      "main": [
+        [
+          {
+            "node": "Run Scanner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Scanner": {
+      "main": [
+        [
+          {
+            "node": "Auto Deploy If Flagged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Deploy If Flagged": {
+      "main": [
+        [
+          {
+            "node": "Deploy Stack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log To Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deploy Stack": {
+      "main": [
+        [
+          {
+            "node": "Notify Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log To Supabase": {
+      "main": [
+        [
+          {
+            "node": "Notify Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "id": "fusion-github-push-v1"
+}

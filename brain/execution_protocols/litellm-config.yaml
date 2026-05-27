@@ -1,0 +1,78 @@
+# LiteLLM Router Config — CMNDCENTER v4.0
+# All AI calls route through localhost:4000
+# Model aliases used in code: "coding", "research", "fast", "local"
+
+model_list:
+  # ── Primary: Claude Sonnet 4.6 (coding + build tasks)
+  - model_name: coding
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 8192
+      temperature: 0.1
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 8192
+
+  # ── Deep: Claude Opus 4.7 (research + analysis)
+  - model_name: research
+    litellm_params:
+      model: anthropic/claude-opus-4-7
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 16384
+      temperature: 0.2
+
+  - model_name: claude-opus-4-7
+    litellm_params:
+      model: anthropic/claude-opus-4-7
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 16384
+
+  # ── Fast: Claude Haiku 4.5 (quick tasks)
+  - model_name: fast
+    litellm_params:
+      model: anthropic/claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+      max_tokens: 4096
+      temperature: 0.0
+
+  # ── Local: Ollama hermes3 (offline, queue processing)
+  - model_name: local
+    litellm_params:
+      model: ollama/hermes3
+      api_base: http://ollama:11434
+
+  - model_name: hermes3
+    litellm_params:
+      model: ollama/hermes3
+      api_base: http://ollama:11434
+
+  # ── Local small: gemma3:4b
+  - model_name: gemma3
+    litellm_params:
+      model: ollama/gemma3:4b
+      api_base: http://ollama:11434
+
+router_settings:
+  routing_strategy: least-busy
+  num_retries: 2
+  timeout: 60
+  retry_after: 5
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  cache: true
+  cache_params:
+    type: redis
+    host: redis
+    port: 6379
+    ttl: 3600
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/cmndcenter
+  store_model_in_db: true
