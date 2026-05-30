@@ -73,20 +73,47 @@ claude-architect-os/
 │       ├── system-monitor.ts     # Real-time health
 │       └── project-manager.ts   # Project + GitHub management
 │
+├── agents/
+│   ├── agent-manager.py          # 37-agent auto-assignment + compound learning
+│   ├── potentiate-now.py         # 4-parallel-scanner potentiation engine
+│   ├── potentiation-matrix.py    # Pythagorean √(a²+b²+c²) chain optimizer
+│   ├── agent-router.json         # Agent routing rules
+│   ├── model-selector.json       # Model selection rules per task type
+│   ├── mini-project-agents.json  # Mini-project agent assignments
+│   └── registry.json             # 37-agent configuration
+│
 ├── brain/                        # Claude intelligence layer
 │   ├── core_identity/system.md   # Master system prompt (XML)
 │   ├── prompt_layers/stack.md    # 7-layer inheritance docs
-│   ├── execution_protocols/      # Model routing rules
+│   ├── execution_protocols/
+│   │   └── litellm-config.yaml   # LiteLLM model routing (localhost:4000)
 │   ├── automation_templates/     # Reusable workflows
 │   └── money_systems/            # Revenue optimization
+│
+├── core/
+│   └── master-prompt.md          # Core laws loaded on every Claude session
+│
+├── config/
+│   ├── vscode-settings.json      # VS Code editor settings / performance layer
+│   ├── vscode-tasks.json         # VS Code task definitions (compound-loop, master-refresh, etc.)
+│   └── vscode-extensions.json    # Recommended extension list
+│
+├── dashboard/                    # Local monitoring dashboard (open index.html)
+│   ├── index.html                # Entry point
+│   ├── app.jsx                   # Root component
+│   ├── agents.jsx                # Agent status view
+│   ├── mission.jsx               # Mission / goal tracker
+│   ├── orchestrator.jsx          # Orchestrator status
+│   ├── telemetry.jsx             # System telemetry
+│   ├── shared.jsx                # Shared components
+│   ├── data.js                   # Data layer
+│   ├── colors_and_type.css       # Design tokens
+│   └── styles.css                # Styles
 │
 ├── prompts/                      # Prompt library
 │   └── base/
 │       ├── system-prompt.md      # Base operational prompt
 │       └── master-prompts.md     # 10 master prompt templates
-│
-├── agents/
-│   └── registry.json             # 37-agent configuration
 │
 ├── memory/
 │   ├── schema/supabase.sql       # Full DB schema + RLS
@@ -104,8 +131,14 @@ claude-architect-os/
 │   ├── upgrade.sh                # Auto-upgrade + health check
 │   └── wire-cmndcenter.sh        # CMNDCENTER integration
 │
+├── ARCHITECTURE.md               # System design, 50 tools, 4 tiers, routing
+├── MASTER-KEYS-MAP.md            # All hotkeys, aliases, pipeline triggers
+├── ROI-STACK.md                  # ROI stack definition and chain flows
+├── SELF-ENHANCE.md               # Self-enhancement loop documentation
+├── SUPREME-MODE.md               # Supreme / autonomous mode docs
+│
 └── docs/
-    ├── ARCHITECTURE.md           # System design + layers
+    ├── ARCHITECTURE.md           # System design + layers (legacy)
     └── WIRING.md                 # Every integration point
 ```
 
@@ -138,6 +171,43 @@ Agents organized by phase — all accessible via `claude-architect-os` or direct
 
 ---
 
+## Agent Scripts
+
+### `agents/agent-manager.py`
+Auto-assigns the best specialist agent for any task based on 37-agent routing rules, with compound learning across sessions.
+
+```bash
+python agents/agent-manager.py --task "build a REST API for user auth"
+# → Assigns: system-architect + backend-architect + security-engineer
+```
+
+### `agents/potentiate-now.py`
+Runs a 4-parallel potentiation scan — reads recent patterns, scores them, wires high-ROI patterns into compound memory.
+
+```bash
+python agents/potentiate-now.py
+# Runs: SEARCH → SCORE → ADOPT → MEMORIZE (all 4 scanners in parallel)
+```
+
+### `agents/potentiation-matrix.py`
+Scores agent chains using a Pythagorean `√(a²+b²+c²)` optimizer. Used by the compound loop and `potentiate-now.py`.
+
+---
+
+## Dashboard
+
+A local monitoring dashboard lives in `dashboard/`. Open it directly:
+
+```bash
+open dashboard/index.html
+# or serve it:
+cd dashboard && npx serve .
+```
+
+Shows live agent status, mission tracker, orchestrator state, and system telemetry.
+
+---
+
 ## Self-Improvement Loop
 
 Every night at 3:00 AM:
@@ -163,6 +233,12 @@ The system gets smarter every night without manual intervention.
 | Local automation | ollama/gemma3:4b | Fully offline |
 | Market analysis | claude-sonnet-4-6 + RAG | Context augmented |
 
+LiteLLM proxy config lives in `brain/execution_protocols/litellm-config.yaml`. Runs at `localhost:4000` — start it with:
+
+```bash
+litellm --config brain/execution_protocols/litellm-config.yaml
+```
+
 ---
 
 ## Core Philosophy
@@ -182,17 +258,74 @@ The system gets smarter every night without manual intervention.
 
 ## Environment
 
-Copy `.env.example` → `.env` and fill in:
-- `ANTHROPIC_API_KEY` — claude.ai/settings
-- `GITHUB_TOKEN` — github.com/settings/tokens (repo scope)
-- `SUPABASE_URL` + `SUPABASE_ANON_KEY` — from Docker stack or supabase.com
-- Other keys are optional (local services auto-start via Docker)
+Copy `.env.example` → `.env`:
+
+```bash
+cp .env.example ~/OMNISTACK/.env
+nano ~/OMNISTACK/.env
+# Then symlink for all tools to share one file:
+ln -sf ~/OMNISTACK/.env ~/CMNDCENTER/.env
+```
+
+### Required
+
+| Variable | Where to get it |
+|----------|----------------|
+| `ANTHROPIC_API_KEY` | [claude.ai/settings](https://claude.ai/settings) |
+
+### Notifications (optional but recommended — enables nightly upgrade alerts)
+
+| Variable | Notes |
+|----------|-------|
+| `TELEGRAM_BOT_TOKEN` | Create a bot via [@BotFather](https://t.me/botfather) |
+| `TELEGRAM_CHAT_ID` | Get from `https://api.telegram.org/bot<TOKEN>/getUpdates` after sending your bot a message |
+
+### Research APIs (optional — unlocks Firecrawl scraping + Perplexity search in pipelines)
+
+| Variable | Where to get it |
+|----------|----------------|
+| `FIRECRAWL_API_KEY` | [firecrawl.dev](https://firecrawl.dev) |
+| `PERPLEXITY_API_KEY` | [perplexity.ai/settings/api](https://perplexity.ai/settings/api) |
+| `GITHUB_TOKEN` | github.com/settings/tokens (repo scope) |
+
+### Docker Services (auto-configured by `install.sh` — change only if you have conflicts)
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `POSTGRES_USER` | `postgres` | n8n database user |
+| `POSTGRES_PASSWORD` | `omnistack` | Change before production use |
+| `POSTGRES_DB` | `n8n` | n8n database name |
+| `N8N_ENCRYPTION_KEY` | *(generated)* | Auto-set by `install.sh` |
+| `N8N_FUSION_TRIGGER_URL` | *(generated)* | Auto-populated by `install.sh` |
+| `N8N_PROMPT_SUBMIT_URL` | *(generated)* | Auto-populated by `install.sh` |
+| `REDIS_URL` | `redis://localhost:6379` | Local Redis instance |
+
+### Memory / Vector Store
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `CHROMADB_URL` | `http://localhost:8000` | Local ChromaDB instance |
+| `SUPABASE_URL` | `http://localhost:54321` | Local Supabase (Docker) or hosted |
+| `SUPABASE_SERVICE_KEY` | *(from Supabase)* | Service role key (not anon key) |
+| `MEMORY_STORE_PATH` | `~/.amsa/memory` | Local pattern + memory files |
+| `PATTERNS_JSON_PATH` | `~/.amsa/memory/patterns.json` | Compound learning patterns |
+
+### Timezone
+
+| Variable | Default |
+|----------|---------|
+| `GENERIC_TIMEZONE` | `America/New_York` |
+| `TZ` | `America/New_York` |
 
 ---
 
 ## Docs
 
-- [Architecture](docs/ARCHITECTURE.md) — full system design
+- [Architecture](ARCHITECTURE.md) — full system design, 50 tools, 4 tiers, routing
+- [Master Keys Map](MASTER-KEYS-MAP.md) — all hotkeys, aliases, pipeline triggers, command reference
+- [ROI Stack](ROI-STACK.md) — ROI chain flows and scoring
+- [Self-Enhancement Loop](SELF-ENHANCE.md) — how the system improves itself
+- [Supreme Mode](SUPREME-MODE.md) — autonomous / supreme mode activation
 - [Wiring Guide](docs/WIRING.md) — every integration point
 - [Prompt Stack](brain/prompt_layers/stack.md) — 7-layer inheritance
 - [Agent Registry](agents/registry.json) — all 37 agents
